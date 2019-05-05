@@ -43,13 +43,13 @@ class XRayDataset(Dataset):
              for line in open(glob.glob(os.path.join(item_dir, "*.txt"))[0])]
         )
 
-        label = np.zeros([item_landmarks.shape[0], height, width])
+        target = np.zeros([item_landmarks.shape[0], height, width])
 
         for (i, (x, y)) in enumerate(item_landmarks):
-            if 0 <= x <= width and 0 <= y <= height:
-                label[i, y, x] = 1
+            if 0 <= x < width and 0 <= y < height:
+                target[i, y, x] = 1
 
-        sample = {'image': image, 'landmarks': label}
+        sample = (image, target)
 
         if self.transform:
             sample = self.transform(sample)

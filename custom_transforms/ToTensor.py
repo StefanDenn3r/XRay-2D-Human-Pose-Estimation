@@ -6,6 +6,6 @@ class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
 
     def __call__(self, sample):
-        image, landmarks = sample['image'], sample['landmarks']
+        image, landmarks = sample
         image = np.expand_dims(image, axis=0)
-        return {'image': torch.from_numpy(image), 'landmarks': torch.from_numpy(landmarks)}
+        return torch.from_numpy(image), torch.from_numpy(landmarks)
