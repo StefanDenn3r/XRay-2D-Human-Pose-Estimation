@@ -35,8 +35,7 @@ def main():
     batch_size = 30
     for i_batch, sample_batched in enumerate(
             XRayDataLoader(os.path.join(Path(__file__).parent.parent, "data/XRay/Everything"), batch_size)):
-        batch_images = sample_batched['image']
-        batch_landmarks = sample_batched['landmarks']
+        batch_images, batch_landmarks = sample_batched
 
         if i_batch == 0:
             print(f"batch_images shape: {batch_images.shape}; batch_landmark shape: {batch_landmarks.shape}")

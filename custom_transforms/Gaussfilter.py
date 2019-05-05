@@ -8,8 +8,8 @@ class Gaussfilter(object):
         self.sigma = sigma
 
     def __call__(self, sample):
-        image, landmarks = sample['image'], sample['landmarks']
+        image, landmarks = sample
 
         landmarks = gaussian_filter(landmarks, sigma=self.sigma)
 
-        return {'image': image, 'landmarks': landmarks}
+        return image, landmarks
