@@ -54,4 +54,4 @@ def main():
             # Image.fromarray(cv2.normalize(stacked_image, None, 0, 1, cv2.NORM_MINMAX, cv2.CV_64F) * 255).show()
 
 
-main()
+#main()
