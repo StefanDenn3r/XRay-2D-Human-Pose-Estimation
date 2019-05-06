@@ -11,10 +11,10 @@
     "type": "XRayDataLoader",
     "args": {
       "data_dir": "data/XRay/Everything",
-      "batch_size": 1,
+      "batch_size": 5,
       "shuffle": true,
       "validation_split": 0.1,
-      "num_workers": 2
+      "num_workers": 1
     }
   },
   "optimizer": {
@@ -25,9 +25,9 @@
       "amsgrad": true
     }
   },
-  "loss": "mse_loss",
+  "loss": "jointmseloss",
   "metrics": [
-    "jointmseloss"
+    "my_metric"
   ],
   "lr_scheduler": {
     "type": "StepLR",
