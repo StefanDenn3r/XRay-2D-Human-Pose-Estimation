@@ -4,15 +4,16 @@
   "arch": {
     "type": "HourglassNet",
     "args": {
-
+      "num_stacks": 1,
+      "num_blocks": 1
     }
   },
   "data_loader": {
     "type": "XRayDataLoader",
     "args": {
       "data_dir": "data/XRay/Everything",
-      "batch_size": 5,
-      "shuffle": true,
+      "batch_size": 4,
+      "shuffle": false,
       "validation_split": 0.1,
       "num_workers": 1
     }
@@ -27,7 +28,7 @@
   },
   "loss": "jointmseloss",
   "metrics": [
-    "my_metric"
+    "mock_metric"
   ],
   "lr_scheduler": {
     "type": "StepLR",
@@ -37,12 +38,12 @@
     }
   },
   "trainer": {
-    "epochs": 1,
+    "epochs": 100,
     "save_dir": "saved/",
     "save_period": 1,
     "verbosity": 2,
     "monitor": "min val_loss",
-    "early_stop": 10,
+    "early_stop": 50,
     "tensorboardX": true
   }
 }

@@ -20,3 +20,5 @@ def my_metric2(output, target, k=3):
     return correct / len(target)
 
 
+def mock_metric(output, target):
+    return 0

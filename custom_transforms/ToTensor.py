@@ -8,4 +8,4 @@ class ToTensor(object):
     def __call__(self, sample):
         image, landmarks = sample
         image = np.expand_dims(image, axis=0)
-        return torch.from_numpy(image), torch.from_numpy(landmarks)
+        return torch.from_numpy(image), torch.from_numpy(landmarks).float()

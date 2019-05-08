@@ -90,14 +90,15 @@ class Hourglass(BaseModel):
 class HourglassNet(BaseModel):
     '''Hourglass model from Newell et al ECCV 2016'''
 
-    def __init__(self, block=Bottleneck, num_stacks=1, num_blocks=1, num_classes=23):
+    def __init__(self, block=Bottleneck, num_stacks=3, num_blocks=1, num_classes=23):
         super(HourglassNet, self).__init__()
 
         self.inplanes = 64
         self.num_feats = 256
         self.num_stacks = num_stacks
-        self.conv1 = nn.Conv2d(1, self.inplanes, kernel_size=7, stride=2, padding=3,
-                               bias=True)
+        self.conv1 = nn.Conv2d(1, self.inplanes, kernel_size=(17, 19), stride=(3, 3),
+                               dilation=(6, 13))  # output = 64x64
+        # self.conv1 = nn.Conv2d(1, self.inplanes, kernel_size=7, stride=2, padding=3, bias=True)
         self.bn1 = nn.BatchNorm2d(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
         self.layer1 = self._make_residual(block, self.inplanes, 1)
@@ -122,6 +123,9 @@ class HourglassNet(BaseModel):
         self.score = nn.ModuleList(score)
         self.fc_ = nn.ModuleList(fc_)
         self.score_ = nn.ModuleList(score_)
+
+        # To get inputshape of (480, 616)
+        self.conv_transpose = nn.ConvTranspose2d(23, 23, kernel_size=(39, 49), stride=(7, 9))
 
     def _make_residual(self, block, planes, blocks, stride=1):
         downsample = None
@@ -164,11 +168,10 @@ class HourglassNet(BaseModel):
             y = self.res[i](y)
             y = self.fc[i](y)
             score = self.score[i](y)
-            out.append(score)
+            out.append(self.conv_transpose(score))
             if i < self.num_stacks - 1:
                 fc_ = self.fc_[i](y)
                 score_ = self.score_[i](score)
                 x = x + fc_ + score_
 
         return torch.stack(out)  # earlier: return out
-
