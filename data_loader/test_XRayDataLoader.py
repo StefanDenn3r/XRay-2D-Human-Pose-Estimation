@@ -1,0 +1,34 @@
+import os
+from pathlib import Path
+
+import numpy as np
+from PIL import Image
+
+from data_loader.XRayDataLoader import XRayDataLoader
+
+
+def main():
+    batch_size = 2
+    for i_batch, sample_batched in enumerate(
+            XRayDataLoader(os.path.join(Path(__file__).parent.parent, "data/XRay/Everything"), batch_size)):
+        batch_images, batch_landmarks = sample_batched
+
+        if i_batch == 0:
+            print(f"batch_images shape: {batch_images.shape}; batch_landmark shape: {batch_landmarks.shape}")
+
+        for i in range(batch_size):
+            (image, landmarks) = batch_images[i].numpy(), batch_landmarks[i].numpy()
+            # Display normalized Image
+            # Image.fromarray(image[0] * 255).show()
+
+            # Display Landmarks
+            # Image.fromarray(np.sum(landmarks, axis=0) * 255).show()
+
+            # Display Landsmarks in normalized Image
+            stacked_image = np.maximum((np.squeeze(image, axis=0)) * 255, (np.sum(landmarks, axis=0) * 255))
+            Image.fromarray(stacked_image).show()
+
+        break
+
+
+main()
