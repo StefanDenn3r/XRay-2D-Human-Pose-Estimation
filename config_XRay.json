@@ -2,7 +2,7 @@
   "name": "XRay",
   "n_gpu": 1,
   "arch": {
-    "type": "HourglassNet",
+    "type": "StackedHourglassNet",
     "args": {
       "num_stacks": 1,
       "num_blocks": 1
