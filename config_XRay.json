@@ -4,7 +4,7 @@
   "arch": {
     "type": "StackedHourglassNet",
     "args": {
-      "num_stacks": 1,
+      "num_stacks": 3,
       "num_blocks": 1
     }
   },

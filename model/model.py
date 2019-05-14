@@ -60,9 +60,9 @@ class Hourglass(BaseModel):
         x = self.block1(x)  # 128 channels
         x = self.max_pool(x)
 
-        # identity0 = x  # 128 todo: this should not be required?
+        # identity0 = x  # 128 todo: this should not be required!
         x = self.bottleneck(x)  # 256 channels
-        # x += identity0
+        # x += identity0 todo: this should not be required?!
 
         x = F.interpolate(x, scale_factor=2)
         x += identity1
@@ -88,7 +88,12 @@ class StackedHourglassNet(BaseModel):
         self.conv = nn.Conv2d(1, self.channels, 7, 2, padding=3)  # size afterwards is (480/2, 616/2)
         self.bn = nn.BatchNorm2d(self.channels)
 
-        self.hg1 = Hourglass(num_blocks, self.channels)
+        self.hgs = []
+        self.relu = F.relu
+
+        for _ in range(self.num_stacks):
+            self.hgs.append(Hourglass(num_blocks, self.channels))
+
         self.intermediate_conv1 = Bottleneck(self.channels)
         self.intermediate_conv2 = Bottleneck(self.channels)
 
@@ -96,31 +101,23 @@ class StackedHourglassNet(BaseModel):
 
         self.intermediate_conv3 = nn.Conv2d(num_classes, self.channels, 1)
 
-        self.hg2 = Hourglass(num_blocks, self.channels)
-        self.relu = F.relu
-
     def forward(self, x):
         out = []
         x = self.conv(x)
         x = self.bn(x)
         x = self.relu(x)
 
-        hourglass_identity = x
-        x = self.hg1(x)
-        x = self.intermediate_conv1(x)
-        intermediate_conv_identity = x
+        for i in range(self.num_stacks):
+            hourglass_identity = x
+            x = self.hgs[i](x)
+            x = self.intermediate_conv1(x)
+            intermediate_conv_identity = x
 
-        loss_conv = self.loss_conv(x)
-        out.append(loss_conv)
-
-        x = self.intermediate_conv3(loss_conv) \
-            + self.intermediate_conv2(intermediate_conv_identity) \
-            + hourglass_identity
-
-        x = self.hg2(x)
-        x = self.intermediate_conv1(x)
-        x = self.loss_conv(x)
-
-        out.append(x)
+            loss_conv = self.loss_conv(x)
+            out.append(loss_conv)
+            if i < self.num_stacks - 1:
+                x = self.intermediate_conv3(loss_conv) \
+                    + self.intermediate_conv2(intermediate_conv_identity) \
+                    + hourglass_identity
 
         return torch.stack(out)
