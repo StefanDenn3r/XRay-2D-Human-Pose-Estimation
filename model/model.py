@@ -60,9 +60,9 @@ class Hourglass(BaseModel):
         x = self.block1(x)  # 128 channels
         x = self.max_pool(x)
 
-        identity0 = x  # 128 todo: this should not be required?
+        # identity0 = x  # 128 todo: this should not be required?
         x = self.bottleneck(x)  # 256 channels
-        x += identity0
+        # x += identity0
 
         x = F.interpolate(x, scale_factor=2)
         x += identity1
