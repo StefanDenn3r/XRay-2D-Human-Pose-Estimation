@@ -35,40 +35,28 @@ class Bottleneck(BaseModel):
 
 
 class Hourglass(BaseModel):
-    def __init__(self, num_blocks=1, num_channels=32):
+    def __init__(self, num_blocks=4, num_channels=32):
         super(Hourglass, self).__init__()
 
         self.channels = num_channels
+        self.num_blocks = num_blocks
 
-        # todo generalize depending on num_blocks
-        self.block2 = Bottleneck(self.channels)
-
-        self.block1 = Bottleneck(self.channels)
-
-        self.bottleneck = Bottleneck(self.channels)
-
+        self.block = Bottleneck(self.channels)
         self.max_pool = nn.MaxPool2d(2)
 
     def forward(self, x):
-        # todo generalize depending on num_blocks
+        identities = []
 
-        identity2 = x  # 32 channels
-        x = self.block2(x)  # 64 channels
-        x = self.max_pool(x)
+        for _ in range(self.num_blocks):
+            identities.append(x)
+            x = self.block(x)
+            x = self.max_pool(x)
 
-        identity1 = x  # 64
-        x = self.block1(x)  # 128 channels
-        x = self.max_pool(x)
+        x = self.block(x)
 
-        # identity0 = x  # 128 todo: this should not be required!
-        x = self.bottleneck(x)  # 256 channels
-        # x += identity0 todo: this should not be required?!
-
-        x = F.interpolate(x, scale_factor=2)
-        x += identity1
-
-        x = F.interpolate(x, scale_factor=2)
-        x += identity2
+        for i in range(0, self.num_blocks):
+            x = F.interpolate(x, scale_factor=2)
+            x += identities[self.num_blocks - i - 1]
 
         return x
 
@@ -79,7 +67,7 @@ class StackedHourglassNet(BaseModel):
     def __init__(self, num_stacks=3, num_blocks=1, init_channels=32, num_classes=23):
         super(StackedHourglassNet, self).__init__()
 
-        assert (1 <= num_blocks <= 5, "invalid number of blocks [1, 5]")
+        assert (1 <= num_blocks <= 2, "invalid number of blocks [1, 2]")
 
         self.num_stacks = num_stacks
         self.init_channels = init_channels
@@ -88,18 +76,19 @@ class StackedHourglassNet(BaseModel):
         self.conv = nn.Conv2d(1, self.channels, 7, 2, padding=3)  # size afterwards is (480/2, 616/2)
         self.bn = nn.BatchNorm2d(self.channels)
 
-        self.hgs = []
         self.relu = F.relu
 
-        for _ in range(self.num_stacks):
+        self.hgs, self.intermediate_conv1, self.intermediate_conv2, self.loss_conv, self.intermediate_conv3 \
+            = ([] for _ in range(5))
+        for i in range(self.num_stacks):
             self.hgs.append(Hourglass(num_blocks, self.channels))
 
-        self.intermediate_conv1 = Bottleneck(self.channels)
-        self.intermediate_conv2 = Bottleneck(self.channels)
+            self.intermediate_conv1.append(Bottleneck(self.channels))
 
-        self.loss_conv = nn.Conv2d(self.channels, num_classes, 1)  # size should be: (480/2, 616/2)
-
-        self.intermediate_conv3 = nn.Conv2d(num_classes, self.channels, 1)
+            self.loss_conv.append(nn.Conv2d(self.channels, num_classes, 1))  # size should be: (480/2, 616/2)
+            if i < self.num_stacks - 1:
+                self.intermediate_conv2.append(Bottleneck(self.channels))
+                self.intermediate_conv3.append(nn.Conv2d(num_classes, self.channels, 1))
 
     def forward(self, x):
         out = []
@@ -110,14 +99,14 @@ class StackedHourglassNet(BaseModel):
         for i in range(self.num_stacks):
             hourglass_identity = x
             x = self.hgs[i](x)
-            x = self.intermediate_conv1(x)
+            x = self.intermediate_conv1[i](x)
             intermediate_conv_identity = x
 
-            loss_conv = self.loss_conv(x)
+            loss_conv = self.loss_conv[i](x)
             out.append(loss_conv)
             if i < self.num_stacks - 1:
-                x = self.intermediate_conv3(loss_conv) \
-                    + self.intermediate_conv2(intermediate_conv_identity) \
+                x = self.intermediate_conv3[i](loss_conv) \
+                    + self.intermediate_conv2[i](intermediate_conv_identity) \
                     + hourglass_identity
 
         return torch.stack(out)
