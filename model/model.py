@@ -6,7 +6,7 @@ from base import BaseModel
 
 
 # todo: generalize in num_stacks and num_blocks
-# todo: add relu
+# done! todo: add relu
 # done! todo: add loss function => resize ground truth
 
 class Bottleneck(BaseModel):
@@ -15,12 +15,20 @@ class Bottleneck(BaseModel):
         self.conv1 = nn.Conv2d(in_channels, in_channels // 2, 1)
         self.conv2 = nn.Conv2d(in_channels // 2, in_channels, 3, padding=1)
         self.conv3 = nn.Conv2d(in_channels, in_channels, 1)
+        self.relu = nn.ReLU()
 
     def forward(self, x):
         identity = x
+
         x = self.conv1(x)
+        x = self.relu(x)
+
         x = self.conv2(x)
+        x = self.relu(x)
+
         x = self.conv3(x)
+        x = self.relu(x)
+
         x += identity
 
         return x
