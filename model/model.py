@@ -3,8 +3,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from base import BaseModel
+
+
 # todo: generalize in num_stacks and num_blocks
 # todo: add relu
+# done! todo: add loss function => resize ground truth
 
 class Bottleneck(BaseModel):
     def __init__(self, in_channels):
@@ -14,9 +17,11 @@ class Bottleneck(BaseModel):
         self.conv3 = nn.Conv2d(in_channels, in_channels, 1)
 
     def forward(self, x):
+        identity = x
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
+        x += identity
 
         return x
 
@@ -47,7 +52,7 @@ class Hourglass(BaseModel):
         x = self.block1(x)  # 128 channels
         x = self.max_pool(x)
 
-        identity0 = x  # 128
+        identity0 = x  # 128 todo: this should not be required?
         x = self.bottleneck(x)  # 256 channels
         x += identity0
 
