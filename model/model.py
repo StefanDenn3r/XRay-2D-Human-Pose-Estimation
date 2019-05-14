@@ -5,10 +5,6 @@ import torch.nn.functional as F
 from base import BaseModel
 
 
-# todo: generalize in num_stacks and num_blocks
-# done! todo: add relu
-# done! todo: add loss function => resize ground truth
-
 class Bottleneck(BaseModel):
     def __init__(self, in_channels):
         super(Bottleneck, self).__init__()
@@ -62,7 +58,7 @@ class Hourglass(BaseModel):
 
 
 class StackedHourglassNet(BaseModel):
-    '''Hourglass model from Newell et al ECCV 2016'''
+    """Hourglass model from Newell et al ECCV 2016"""
 
     def __init__(self, num_stacks=3, num_blocks=1, init_channels=32, num_classes=23):
         super(StackedHourglassNet, self).__init__()
