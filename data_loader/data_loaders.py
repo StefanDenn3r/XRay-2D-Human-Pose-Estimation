@@ -13,7 +13,7 @@ class XRayDataLoader(BaseDataLoader):
     XRay data loading demo using BaseDataLoader
     """
 
-    def __init__(self, data_dir, batch_size, shuffle=True, validation_split=0.0, num_workers=1, is_training=True,
+    def __init__(self, data_dir, batch_size, shuffle=True, validation_split=0.0, num_workers=1, training=True,
                  sigma=0.6):
         trsfm = transforms.Compose([
             Gaussfilter(sigma),
@@ -23,5 +23,5 @@ class XRayDataLoader(BaseDataLoader):
         ])
 
         self.data_dir = data_dir
-        self.dataset = XRayDataset(self.data_dir, is_training, transform=trsfm)
+        self.dataset = XRayDataset(self.data_dir, training, transform=trsfm)
         super(XRayDataLoader, self).__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)

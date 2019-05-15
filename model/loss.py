@@ -7,7 +7,7 @@ def nll_loss(output, target):
 
 
 def jointmseloss(output, target):
-    criterion = nn.MSELoss(reduction='mean')
+    criterion = nn.L1Loss()
     batch_size = output.size(1)
     num_joints = output.size(0)
     heatmaps_pred = output.reshape((batch_size, num_joints, -1)).split(1, 1)

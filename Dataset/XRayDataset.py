@@ -11,7 +11,7 @@ import utils
 class XRayDataset(Dataset):
     """X-Ray Landmarks dataset."""
 
-    def __init__(self, root_dir, is_training, transform=None):
+    def __init__(self, root_dir, training, transform=None):
         """
         Args:
             root_dir (string): Directory with all the images.
@@ -20,7 +20,7 @@ class XRayDataset(Dataset):
         self.root_dir = root_dir
         self.data_dir_paths = []
 
-        if is_training:
+        if training:
             self.data_dir_paths += utils.retrieve_sub_folder_paths(os.path.join(self.root_dir, "Training"))
             self.data_dir_paths += utils.retrieve_sub_folder_paths(os.path.join(self.root_dir, "Validation"))
         else:
