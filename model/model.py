@@ -76,8 +76,7 @@ class StackedHourglassNet(BaseModel):
         self.num_stacks = num_stacks
         self.init_channels = init_channels
         self.channels = init_channels
-        # reduce image size by factor 22
-        self.conv = nn.Conv2d(1, self.channels, 7, 2, padding=3)  # size afterwards is (480/2, 616/2)
+        self.conv = nn.Conv2d(1, self.channels, 7, 2, padding=3)
 
         self.relu = F.relu
 
@@ -87,7 +86,7 @@ class StackedHourglassNet(BaseModel):
 
             self.intermediate_conv1.append(Bottleneck(self.channels))
 
-            self.loss_conv.append(nn.Conv2d(self.channels, num_classes, 1))  # size should be: (480/2, 616/2)
+            self.loss_conv.append(nn.Conv2d(self.channels, num_classes, 1))
             if i < self.num_stacks - 1:
                 self.intermediate_conv2.append(Bottleneck(self.channels))
                 self.intermediate_conv3.append(nn.Conv2d(num_classes, self.channels, 1))
