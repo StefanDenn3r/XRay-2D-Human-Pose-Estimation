@@ -43,7 +43,7 @@ class Hourglass(BaseModel):
             self.intermediate_bottleneck_blocks.append(Bottleneck(self.channels))
             self.post_bottleneck_blocks.append(Bottleneck(self.channels))
 
-        self.bottleneck = Bottleneck(self.channels)
+        self.bottlenecks = [Bottleneck(self.channels) for _ in range(3)]
         self.max_pool = nn.MaxPool2d(2)
 
     def forward(self, x):
@@ -54,7 +54,8 @@ class Hourglass(BaseModel):
             identities.append(self.intermediate_bottleneck_blocks[i](x))
             x = self.max_pool(x)
 
-        x = self.bottleneck(x)
+        for i in range(len(self.bottlenecks)):
+            x = self.bottlenecks[i](x)
 
         for i in range(self.num_blocks):
             x = F.interpolate(x, scale_factor=2)
@@ -77,7 +78,6 @@ class StackedHourglassNet(BaseModel):
         self.channels = init_channels
         # reduce image size by factor 22
         self.conv = nn.Conv2d(1, self.channels, 7, 2, padding=3)  # size afterwards is (480/2, 616/2)
-        self.bn = nn.BatchNorm2d(self.channels)
 
         self.relu = F.relu
 
@@ -95,7 +95,6 @@ class StackedHourglassNet(BaseModel):
     def forward(self, x):
         out = []
         x = self.conv(x)
-        x = self.bn(x)
         x = self.relu(x)
 
         for i in range(self.num_stacks):
