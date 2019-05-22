@@ -28,7 +28,7 @@
   },
   "loss": "jointmseloss",
   "metrics": [
-    "mock_metric"
+    "proxyLoss"
   ],
   "lr_scheduler": {
     "type": "StepLR",
@@ -38,12 +38,13 @@
     }
   },
   "trainer": {
-    "epochs": 200,
-    "save_dir": "saved/",
+    "epochs": 100,
+    "save_dir": "saved/proxyLoss/",
     "save_period": 1,
     "verbosity": 2,
     "monitor": "min val_loss",
-    "early_stop": 200,
-    "tensorboardX": true
+    "early_stop": 50,
+    "tensorboard": true,
+    "tensorboardX": false
   }
 }
