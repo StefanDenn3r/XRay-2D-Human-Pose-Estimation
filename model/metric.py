@@ -1,6 +1,5 @@
 import torch
 
-
 def my_metric(output, target):
     with torch.no_grad():
         pred = torch.argmax(output, dim=1)
@@ -22,3 +21,19 @@ def my_metric2(output, target, k=3):
 
 def mock_metric(output, target):
     return 0
+
+def proxyLoss(output, target):
+    # Uses Huber Loss
+    criterion = torch.nn.SmoothL1Loss()
+    batch_size = output.size(1)
+    num_joints = output.size(0)
+    heatmaps_pred = output.reshape((batch_size, num_joints, -1)).split(1, 1)
+    heatmaps_gt = target.reshape((batch_size, 1, -1))
+
+    loss = 0
+    for idx in range(num_joints):
+        heatmap_pred = heatmaps_pred[idx].squeeze()
+        heatmap_gt = heatmaps_gt
+        loss += criterion(heatmap_pred, heatmap_gt)
+
+    return loss / num_joints
