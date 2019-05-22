@@ -68,14 +68,14 @@ class Hourglass(BaseModel):
 class StackedHourglassNet(BaseModel):
     """Hourglass model from Newell et al ECCV 2016"""
 
-    def __init__(self, num_stacks=3, num_blocks=1, init_channels=32, num_classes=23):
+    def __init__(self, num_stacks=3, num_blocks=1, num_channels=32, num_classes=23):
         super(StackedHourglassNet, self).__init__()
 
         assert (1 <= num_blocks <= 2, "invalid number of blocks [1, 2]")
 
         self.num_stacks = num_stacks
-        self.init_channels = init_channels
-        self.channels = init_channels
+        self.init_channels = num_channels
+        self.channels = num_channels
         self.conv = nn.Conv2d(1, self.channels, 7, 2, padding=3)
 
         self.relu = F.relu

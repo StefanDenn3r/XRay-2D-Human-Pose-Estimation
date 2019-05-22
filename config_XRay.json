@@ -4,6 +4,7 @@
   "arch": {
     "type": "StackedHourglassNet",
     "args": {
+      "num_channels": 256,
       "num_stacks": 3,
       "num_blocks": 2
     }
@@ -28,7 +29,9 @@
   },
   "loss": "jointmseloss",
   "metrics": [
-    "proxyLoss"
+    "smooth_l1_loss",
+    "percentage_correct_keypoints",
+    "keypoint_distance_loss"
   ],
   "lr_scheduler": {
     "type": "StepLR",

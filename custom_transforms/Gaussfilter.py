@@ -1,3 +1,4 @@
+import numpy as np
 from scipy.ndimage import gaussian_filter
 
 
@@ -10,6 +11,6 @@ class Gaussfilter(object):
     def __call__(self, sample):
         image, landmarks = sample
 
-        landmarks = gaussian_filter(landmarks, sigma=self.sigma)
+        landmarks = np.array([gaussian_filter(landmark, sigma=self.sigma) for landmark in landmarks])
 
         return image, landmarks
