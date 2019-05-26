@@ -7,5 +7,5 @@ def nll_loss(output, target):
     return F.nll_loss(output, target)
 
 
-def jointmseloss(output, target):
-    return util.apply_loss(nn.MSELoss(reduction='mean'), output, target)
+def smooth_l1_loss(output, target):
+    return util.apply_loss(nn.SmoothL1Loss(), output, target)

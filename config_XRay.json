@@ -4,7 +4,7 @@
   "arch": {
     "type": "StackedHourglassNet",
     "args": {
-      "num_channels": 256,
+      "num_channels": 128,
       "num_stacks": 3,
       "num_blocks": 2
     }
@@ -27,9 +27,8 @@
       "amsgrad": true
     }
   },
-  "loss": "jointmseloss",
+  "loss": "smooth_l1_loss",
   "metrics": [
-    "smooth_l1_loss",
     "percentage_correct_keypoints",
     "keypoint_distance_loss"
   ],

@@ -32,13 +32,13 @@ def percentage_correct_keypoints(output, target):
         pred_landmarks_batch = [[np.unravel_index(np.argmax(i_output[idx], axis=None), i_output[idx].shape) for idx in
                                  range(i_output.shape[0])] for i_output in prediction]
 
-        for pred_landmarks, target_landmarks in zip(np.array(pred_landmarks_batch), np.array(target_landmarks_batch)):
-            for pred_landmark, target_landmark in zip(pred_landmarks, target_landmarks):
-                if np.sum(target_landmark) == 0:
-                    continue
-                distance = np.linalg.norm(pred_landmark - target_landmark)
-                if distance <= distance_threshold:
+        for idx, (pred_landmarks, target_landmarks) in enumerate(zip(np.array(pred_landmarks_batch), np.array(target_landmarks_batch))):
+            for channel_idx, (pred_landmark, target_landmark) in enumerate(zip(pred_landmarks, target_landmarks)):
+                # check if either landmark is correctly predicted as not given OR predicted landmarks is within radius
+                if (prediction[idx, channel_idx, pred_landmark[0], pred_landmark[1]] <= 0.1 and np.sum(target_landmark) == 0
+                        or np.linalg.norm(pred_landmark - target_landmark) <= distance_threshold):
                     true_positives += 1
+
                 all_predictions += 1
 
     return (true_positives / all_predictions) * 100
@@ -49,7 +49,7 @@ def keypoint_distance_loss(output, target):
                                for idx in range(i_target.shape[0])] for i_target in target.detach().numpy()]
     predictions = output.detach().numpy()
     sum_distance = 0.0
-    all_predictions = 0.0
+    all_predictions = 0
     for prediction in predictions:
         pred_landmarks_batch = [[np.unravel_index(np.argmax(i_output[idx], axis=None), i_output[idx].shape) for idx in
                                  range(i_output.shape[0])] for i_output in prediction]

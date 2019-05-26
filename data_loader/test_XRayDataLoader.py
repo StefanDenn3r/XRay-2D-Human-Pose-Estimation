@@ -1,16 +1,17 @@
 import os
 from pathlib import Path
 
+import cv2
 import numpy as np
 from PIL import Image
 
-from data_loader.XRayDataLoader import XRayDataLoader
+from data_loader.data_loaders import XRayDataLoader
 
 
 def main():
     batch_size = 2
     for i_batch, sample_batched in enumerate(
-            XRayDataLoader(os.path.join(Path(__file__).parent.parent, "data/XRay/Everything"), batch_size)):
+            XRayDataLoader(os.path.join(Path(__file__).parent.parent, "data/XRay/Ex3"), batch_size)):
         batch_images, batch_landmarks = sample_batched
 
         if i_batch == 0:
@@ -18,6 +19,9 @@ def main():
 
         for i in range(batch_size):
             (image, landmarks) = batch_images[i].numpy(), batch_landmarks[i].numpy()
+            channel, height, width = image.shape
+            image = cv2.resize(image[0], (width // 2, height // 2), cv2.INTER_CUBIC)
+
             # Display normalized Image
             # Image.fromarray(image[0] * 255).show()
 

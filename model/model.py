@@ -37,13 +37,17 @@ class Hourglass(BaseModel):
         self.channels = num_channels
         self.num_blocks = num_blocks
 
-        self.pre_bottleneck_blocks, self.intermediate_bottleneck_blocks, self.post_bottleneck_blocks = [], [], []
+        pre_bottleneck_blocks, intermediate_bottleneck_blocks, post_bottleneck_blocks = [], [], []
         for _ in range(self.num_blocks):
-            self.pre_bottleneck_blocks.append(Bottleneck(self.channels))
-            self.intermediate_bottleneck_blocks.append(Bottleneck(self.channels))
-            self.post_bottleneck_blocks.append(Bottleneck(self.channels))
+            pre_bottleneck_blocks.append(Bottleneck(self.channels))
+            intermediate_bottleneck_blocks.append(Bottleneck(self.channels))
+            post_bottleneck_blocks.append(Bottleneck(self.channels))
 
-        self.bottlenecks = [Bottleneck(self.channels) for _ in range(3)]
+        self.pre_bottleneck_blocks = nn.ModuleList(pre_bottleneck_blocks)
+        self.intermediate_bottleneck_blocks = nn.ModuleList(intermediate_bottleneck_blocks)
+        self.post_bottleneck_blocks = nn.ModuleList(post_bottleneck_blocks)
+
+        self.bottlenecks = nn.ModuleList([Bottleneck(self.channels) for _ in range(3)])
         self.max_pool = nn.MaxPool2d(2)
 
     def forward(self, x):
@@ -80,16 +84,22 @@ class StackedHourglassNet(BaseModel):
 
         self.relu = F.relu
 
-        self.hgs, self.intermediate_conv1, self.intermediate_conv2, self.loss_conv, self.intermediate_conv3 = [], [], [], [], []
+        hgs, intermediate_conv1, intermediate_conv2, loss_conv, intermediate_conv3 = [], [], [], [], []
         for i in range(self.num_stacks):
-            self.hgs.append(Hourglass(num_blocks, self.channels))
+            hgs.append(Hourglass(num_blocks, self.channels))
 
-            self.intermediate_conv1.append(Bottleneck(self.channels))
+            intermediate_conv1.append(Bottleneck(self.channels))
 
-            self.loss_conv.append(nn.Conv2d(self.channels, num_classes, 1))
+            loss_conv.append(nn.Conv2d(self.channels, num_classes, 1))
             if i < self.num_stacks - 1:
-                self.intermediate_conv2.append(Bottleneck(self.channels))
-                self.intermediate_conv3.append(nn.Conv2d(num_classes, self.channels, 1))
+                intermediate_conv2.append(Bottleneck(self.channels))
+                intermediate_conv3.append(nn.Conv2d(num_classes, self.channels, 1))
+
+        self.hgs = nn.ModuleList(hgs)
+        self.intermediate_conv1 = nn.ModuleList(intermediate_conv1)
+        self.intermediate_conv2 = nn.ModuleList(intermediate_conv2)
+        self.loss_conv = nn.ModuleList(loss_conv)
+        self.intermediate_conv3 = nn.ModuleList(intermediate_conv3)
 
     def forward(self, x):
         out = []
