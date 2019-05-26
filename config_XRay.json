@@ -15,7 +15,7 @@
       "data_dir": "data/XRay/Ex3",
       "batch_size": 1,
       "shuffle": false,
-      "validation_split": 0.5,
+      "validation_split": 0.0,
       "num_workers": 1
     }
   },

@@ -3,6 +3,8 @@ from torch import nn
 
 from utils import util
 
+threshold = 0.05
+
 
 def smooth_l1_loss(output, target):
     # Uses Huber Loss
@@ -38,7 +40,7 @@ def percentage_correct_keypoints(output, target):
         for idx, (pred_landmarks, target_landmarks) in enumerate(zip(np.array(pred_landmarks_batch), np.array(target_landmarks_batch))):
             for channel_idx, (pred_landmark, target_landmark) in enumerate(zip(pred_landmarks, target_landmarks)):
                 # check if either landmark is correctly predicted as not given OR predicted landmarks is within radius
-                if (prediction[idx, channel_idx, pred_landmark[0], pred_landmark[1]] <= 0.1 and np.sum(target_landmark) == 0
+                if (abs(prediction[idx, channel_idx, pred_landmark[0], pred_landmark[1]]) <= threshold and np.sum(target_landmark) == 0
                         or np.linalg.norm(pred_landmark - target_landmark) <= distance_threshold):
                     true_positives += 1
 
@@ -59,11 +61,12 @@ def keypoint_distance_loss(output, target):
         pred_landmarks_batch = [[np.unravel_index(np.argmax(i_output[idx], axis=None), i_output[idx].shape) for idx in
                                  range(i_output.shape[0])] for i_output in prediction]
 
-        for pred_landmarks, target_landmarks in zip(np.array(pred_landmarks_batch), np.array(target_landmarks_batch)):
-            for pred_landmark, target_landmark in zip(pred_landmarks, target_landmarks):
+        for idx, (pred_landmarks, target_landmarks) in enumerate(zip(np.array(pred_landmarks_batch), np.array(target_landmarks_batch))):
+            for channel_idx, (pred_landmark, target_landmark) in enumerate(zip(pred_landmarks, target_landmarks)):
                 if np.sum(target_landmark) == 0:
                     continue
                 sum_distance += np.linalg.norm(pred_landmark - target_landmark)
+                #prediction[idx, channel_idx, target_landmark[0], target_landmark[1]], prediction[idx, channel_idx, pred_landmark[0], pred_landmark[1]], target[idx, channel_idx, target_landmark[0], target_landmark[1]]
                 all_predictions += 1
 
     return sum_distance / all_predictions
