@@ -28,7 +28,7 @@ class Bottleneck(BaseModel):
         x += identity
 
         return x
-
+    
 
 class Hourglass(BaseModel):
     def __init__(self, num_blocks=4, num_channels=32):
@@ -49,6 +49,7 @@ class Hourglass(BaseModel):
 
         self.bottlenecks = nn.ModuleList([Bottleneck(self.channels) for _ in range(3)])
         self.max_pool = nn.MaxPool2d(2)
+        self.trans_conv1 = nn.ConvTranspose2d(self.channels, self.channels, 4, stride=2, padding=1)
 
     def forward(self, x):
         identities = []
@@ -62,7 +63,7 @@ class Hourglass(BaseModel):
             x = self.bottlenecks[i](x)
 
         for i in range(self.num_blocks):
-            x = F.interpolate(x, scale_factor=2)
+            x = self.trans_conv1(x)
             x = self.post_bottleneck_blocks[i](x)
             x += identities[self.num_blocks - i - 1]
 
