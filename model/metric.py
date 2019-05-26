@@ -22,10 +22,13 @@ def binary_cross_entropy(output, target):
 
 
 def percentage_correct_keypoints(output, target):
+
+    predictions = output.cpu().detach().numpy()
+    target = target.cpu().detach().numpy()
+
     distance_threshold = np.linalg.norm(target.shape[2:4]) * 0.1  # 10% of image diagonal as distance_threshold
     target_landmarks_batch = [[np.unravel_index(np.argmax(i_target[idx], axis=None), i_target[idx].shape)
-                               for idx in range(i_target.shape[0])] for i_target in target.detach().numpy()]
-    predictions = output.detach().numpy()
+                               for idx in range(i_target.shape[0])] for i_target in target]
     true_positives = 0
     all_predictions = 0
     for prediction in predictions:
@@ -45,9 +48,11 @@ def percentage_correct_keypoints(output, target):
 
 
 def keypoint_distance_loss(output, target):
+    predictions = output.cpu().detach().numpy()
+    target = target.cpu().detach().numpy()
+
     target_landmarks_batch = [[np.unravel_index(np.argmax(i_target[idx], axis=None), i_target[idx].shape)
-                               for idx in range(i_target.shape[0])] for i_target in target.detach().numpy()]
-    predictions = output.detach().numpy()
+                               for idx in range(i_target.shape[0])] for i_target in target]
     sum_distance = 0.0
     all_predictions = 0
     for prediction in predictions:
