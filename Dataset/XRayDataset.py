@@ -4,7 +4,7 @@ import os
 import cv2
 import numpy as np
 from torch.utils.data import Dataset
-
+from config import XRAY_CONFIG
 import utils
 
 
@@ -27,6 +27,18 @@ class XRayDataset(Dataset):
             self.data_dir_paths += utils.retrieve_sub_folder_paths(os.path.join(self.root_dir, "Test"))
 
         self.transform = transform
+
+        # only use percentage_to_use of all available data. For training/validation and test
+        dataset_size = len(self.data_dir_paths)
+        if dataset_size <= 10:
+            return
+        indices = list(range(dataset_size))
+        split = int(np.floor(XRAY_CONFIG['fraction_of_dataset'] * dataset_size))
+
+        np.random.seed(42)
+        np.random.shuffle(indices)
+
+        self.data_dir_paths = np.array(self.data_dir_paths)[indices[:split]].tolist()
 
     def __len__(self):
         return len(self.data_dir_paths)

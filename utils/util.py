@@ -23,9 +23,9 @@ def write_json(content, fname):
 
 def retrieve_sub_folder_paths(root):
     dir_paths = []
-    for subdir in os.listdir(root):
-        for subsubdir in os.listdir(os.path.join(root, subdir)):
-            dir_paths.append(os.path.join(root, subdir, subsubdir))
+    for subdir in filter(lambda x: os.path.isdir(x), map(lambda x: os.path.join(root, x), os.listdir(root))):
+        for subsubdir in filter(lambda x: os.path.isdir(x), map(lambda x: os.path.join(subdir, x), os.listdir(subdir))):
+            dir_paths.append(subsubdir)
     return dir_paths
 
 
