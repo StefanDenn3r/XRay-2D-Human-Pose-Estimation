@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from base import BaseModel
 
@@ -83,7 +82,7 @@ class StackedHourglassNet(BaseModel):
         self.channels = num_channels
         self.conv1 = nn.Conv2d(1, self.channels, (1,3), (2,3), padding=(8,38))
         self.conv2 = nn.Conv2d(self.channels, self.channels, (1,3), 1, padding=(4,14))
-        self.relu = F.relu
+        self.relu = nn.ReLU()
 
         hgs, intermediate_conv1, intermediate_conv2, loss_conv, intermediate_conv3 = [], [], [], [], []
         for i in range(self.num_stacks):
