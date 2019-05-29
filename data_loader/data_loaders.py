@@ -14,7 +14,7 @@ class XRayDataLoader(BaseDataLoader):
     """
 
     def __init__(self, data_dir, batch_size, shuffle=True, validation_split=0.0, num_workers=1, training=True,
-                 sigma=0.6):
+                 sigma=300):
         trsfm = transforms.Compose([
             Gaussfilter(sigma),
             Normalize(),

@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from base import BaseModel
 
@@ -49,6 +48,7 @@ class Hourglass(BaseModel):
 
         self.bottlenecks = nn.ModuleList([Bottleneck(self.channels) for _ in range(3)])
         self.max_pool = nn.MaxPool2d(2)
+        self.trans_conv1 = nn.ConvTranspose2d(self.channels, self.channels, 4, stride=2, padding=1)
 
     def forward(self, x):
         identities = []
@@ -62,7 +62,7 @@ class Hourglass(BaseModel):
             x = self.bottlenecks[i](x)
 
         for i in range(self.num_blocks):
-            x = F.interpolate(x, scale_factor=2)
+            x = self.trans_conv1(x)
             x = self.post_bottleneck_blocks[i](x)
             x += identities[self.num_blocks - i - 1]
 
@@ -80,9 +80,9 @@ class StackedHourglassNet(BaseModel):
         self.num_stacks = num_stacks
         self.init_channels = num_channels
         self.channels = num_channels
-        self.conv = nn.Conv2d(1, self.channels, 7, 2, padding=3)
-
-        self.relu = F.relu
+        self.conv1 = nn.Conv2d(1, self.channels, (1,3), (2,3), padding=(8,38))
+        self.conv2 = nn.Conv2d(self.channels, self.channels, (1,3), 1, padding=(4,14))
+        self.relu = nn.ReLU()
 
         hgs, intermediate_conv1, intermediate_conv2, loss_conv, intermediate_conv3 = [], [], [], [], []
         for i in range(self.num_stacks):
@@ -103,7 +103,9 @@ class StackedHourglassNet(BaseModel):
 
     def forward(self, x):
         out = []
-        x = self.conv(x)
+        x = self.conv1(x)
+        x = self.relu(x)
+        x = self.conv2(x)
         x = self.relu(x)
 
         for i in range(self.num_stacks):
