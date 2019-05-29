@@ -6,7 +6,7 @@
     "args": {
       "num_channels": 128,
       "num_stacks": 3,
-      "num_blocks": 2
+      "num_blocks": 7
     }
   },
   "data_loader": {
@@ -40,8 +40,8 @@
     }
   },
   "trainer": {
-    "epochs": 100,
-    "save_dir": "saved/proxyLoss/",
+    "epochs": 1,
+    "save_dir": "saved/",
     "save_period": 1,
     "verbosity": 2,
     "monitor": "min val_loss",
