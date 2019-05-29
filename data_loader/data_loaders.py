@@ -6,19 +6,18 @@ from custom_transforms.Gaussfilter import Gaussfilter
 from custom_transforms.Normalize import Normalize
 from custom_transforms.ToTensor import ToTensor
 from custom_transforms.ResizeLabels import ResizeLabels
-
+from config import XRAY_CONFIG
 
 class XRayDataLoader(BaseDataLoader):
     """
     XRay data loading demo using BaseDataLoader
     """
 
-    def __init__(self, data_dir, batch_size, shuffle=True, validation_split=0.0, num_workers=1, training=True,
-                 sigma=300):
+    def __init__(self, data_dir, batch_size, shuffle=True, validation_split=0.0, num_workers=1, training=True):
         trsfm = transforms.Compose([
-            Gaussfilter(sigma),
+            Gaussfilter(XRAY_CONFIG['sigma']),
             Normalize(),
-            ResizeLabels(2),
+            ResizeLabels(),
             ToTensor()
         ])
 
