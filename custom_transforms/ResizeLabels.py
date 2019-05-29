@@ -15,7 +15,7 @@ class ResizeLabels(object):
         channels, height, width = landmarks.shape
 
         landmarks = np.array(
-            [cv2.resize(landmark, (width // self.factor, height // self.factor), self.interpolation)
+            [cv2.resize(landmark, (256, 256), self.interpolation)
              for landmark in landmarks]
         )
 
