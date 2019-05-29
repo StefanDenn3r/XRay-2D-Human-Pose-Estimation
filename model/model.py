@@ -28,7 +28,7 @@ class Bottleneck(BaseModel):
         x += identity
 
         return x
-    
+
 
 class Hourglass(BaseModel):
     def __init__(self, num_blocks=4, num_channels=32):
@@ -81,8 +81,8 @@ class StackedHourglassNet(BaseModel):
         self.num_stacks = num_stacks
         self.init_channels = num_channels
         self.channels = num_channels
-        self.conv = nn.Conv2d(1, self.channels, 7, 2, padding=3)
-
+        self.conv1 = nn.Conv2d(1, self.channels, (1,3), (2,3), padding=(8,38))
+        self.conv2 = nn.Conv2d(self.channels, self.channels, (1,3), 1, padding=(4,14))
         self.relu = F.relu
 
         hgs, intermediate_conv1, intermediate_conv2, loss_conv, intermediate_conv3 = [], [], [], [], []
@@ -104,7 +104,9 @@ class StackedHourglassNet(BaseModel):
 
     def forward(self, x):
         out = []
-        x = self.conv(x)
+        x = self.conv1(x)
+        x = self.relu(x)
+        x = self.conv2(x)
         x = self.relu(x)
 
         for i in range(self.num_stacks):
