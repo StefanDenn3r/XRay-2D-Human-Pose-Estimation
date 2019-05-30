@@ -12,7 +12,7 @@
   "data_loader": {
     "type": "XRayDataLoader",
     "args": {
-      "data_dir": "/Users/stefan/LRZ Sync+Share/DATA/ATLAS/Registration/Data/Everything/",
+      "data_dir": "data/XRay/Ex3",
       "batch_size": 1,
       "shuffle": false,
       "validation_split": 0.0,
