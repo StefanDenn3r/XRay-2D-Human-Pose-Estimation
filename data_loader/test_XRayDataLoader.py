@@ -20,7 +20,7 @@ def main():
         for i in range(batch_size):
             (image, landmarks) = batch_images[i].numpy(), batch_landmarks[i].numpy()
             channel, height, width = image.shape
-            image = cv2.resize(image[0], (width // 2, height // 2), cv2.INTER_CUBIC)
+            image = cv2.resize(image[0], (256, 256), cv2.INTER_CUBIC)
 
             # Display normalized Image
             # Image.fromarray(image[0] * 255).show()
@@ -29,7 +29,7 @@ def main():
             # Image.fromarray(np.sum(landmarks, axis=0) * 255).show()
 
             # Display Landsmarks in normalized Image
-            stacked_image = np.maximum((np.squeeze(image, axis=0)) * 255, (np.sum(landmarks, axis=0) * 255))
+            stacked_image = np.maximum(image * 255, (np.sum(landmarks, axis=0) * 255))
             Image.fromarray(stacked_image).show()
 
         break
