@@ -5,7 +5,7 @@
     "type": "StackedHourglassNet",
     "args": {
       "num_channels": 128,
-      "num_stacks": 3,
+      "num_stacks": 1,
       "num_blocks": 7
     }
   },
@@ -16,7 +16,7 @@
       "batch_size": 1,
       "shuffle": false,
       "validation_split": 0.0,
-      "num_workers": 1
+      "num_workers": 0
     }
   },
   "optimizer": {
@@ -40,9 +40,9 @@
     }
   },
   "trainer": {
-    "epochs": 1,
+    "epochs": 100,
     "save_dir": "saved/",
-    "save_period": 1,
+    "save_period": 10,
     "verbosity": 2,
     "monitor": "min val_loss",
     "early_stop": 50,
