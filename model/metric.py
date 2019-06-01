@@ -2,7 +2,7 @@ import numpy as np
 from torch import nn
 from scipy.ndimage import gaussian_filter
 from utils import util
-from config import XRAY_CONFIG
+from config import CONFIG
 
 def smooth_l1_loss(output, target):
     # Uses Huber Loss
@@ -36,13 +36,13 @@ def percentage_correct_keypoints(output, target):
     pred_landmarks_batch = [[np.unravel_index(np.argmax(i_output[idx], axis=None), i_output[idx].shape) for idx in
                              range(i_output.shape[0])] for i_output in prediction]
 
-    pred_landmarks_batch = np.array([gaussian_filter(pred_landmark, sigma=XRAY_CONFIG['prediction_blur']) for pred_landmark in
+    pred_landmarks_batch = np.array([gaussian_filter(pred_landmark, sigma=CONFIG['prediction_blur']) for pred_landmark in
                                      pred_landmarks_batch])
 
     for idx, (pred_landmarks, target_landmarks) in enumerate(zip(np.array(pred_landmarks_batch), np.array(target_landmarks_batch))):
         for channel_idx, (pred_landmark, target_landmark) in enumerate(zip(pred_landmarks, target_landmarks)):
             # check if either landmark is correctly predicted as not given OR predicted landmarks is within radius
-            if (abs(prediction[idx, channel_idx, pred_landmark[0], pred_landmark[1]]) <= XRAY_CONFIG['threshold'] and np.sum(target_landmark) == 0
+            if (abs(prediction[idx, channel_idx, pred_landmark[0], pred_landmark[1]]) <= CONFIG['threshold'] and np.sum(target_landmark) == 0
                     or np.linalg.norm(pred_landmark - target_landmark) <= distance_threshold):
                 true_positives += 1
 
@@ -64,7 +64,7 @@ def keypoint_distance_loss(output, target):
     pred_landmarks_batch = [[np.unravel_index(np.argmax(i_output[idx], axis=None), i_output[idx].shape) for idx in
                              range(i_output.shape[0])] for i_output in prediction]
 
-    pred_landmarks_batch = np.array([gaussian_filter(pred_landmark, sigma=XRAY_CONFIG['prediction_blur']) for pred_landmark in pred_landmarks_batch])
+    pred_landmarks_batch = np.array([gaussian_filter(pred_landmark, sigma=CONFIG['prediction_blur']) for pred_landmark in pred_landmarks_batch])
 
     for idx, (pred_landmarks, target_landmarks) in enumerate(zip(np.array(pred_landmarks_batch), np.array(target_landmarks_batch))):
         for channel_idx, (pred_landmark, target_landmark) in enumerate(zip(pred_landmarks, target_landmarks)):

@@ -4,8 +4,9 @@ import os
 import cv2
 import numpy as np
 from torch.utils.data import Dataset
-from config import XRAY_CONFIG
+from config import CONFIG
 import utils
+
 
 
 class XRayDataset(Dataset):
@@ -33,7 +34,7 @@ class XRayDataset(Dataset):
         if dataset_size <= 10:
             return
         indices = list(range(dataset_size))
-        split = int(np.floor(XRAY_CONFIG['fraction_of_dataset'] * dataset_size))
+        split = int(np.floor(CONFIG['fraction_of_dataset'] * dataset_size))
 
         np.random.seed(42)
         np.random.shuffle(indices)

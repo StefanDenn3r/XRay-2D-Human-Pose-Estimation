@@ -1,4 +1,5 @@
 import logging
+import logging
 import os
 from datetime import datetime
 from functools import reduce
@@ -6,7 +7,8 @@ from operator import getitem
 from pathlib import Path
 
 from logger import setup_logging
-from utils import read_json, write_json
+from utils.util import write_config
+from importlib.machinery import SourceFileLoader
 
 
 class ConfigParser:
@@ -20,15 +22,15 @@ class ConfigParser:
             os.environ["CUDA_VISIBLE_DEVICES"] = args.device
         if args.resume:
             self.resume = Path(args.resume)
-            self.cfg_fname = self.resume.parent / 'config.json'
+            self.cfg_fname = self.resume.parent / 'config.py'
         else:
-            msg_no_cfg = "Configuration file need to be specified. Add '-c config.json', for example."
+            msg_no_cfg = "Configuration file need to be specified. Add '-c config.py', for example."
             assert args.config is not None, msg_no_cfg
             self.resume = None
             self.cfg_fname = Path(args.config)
 
         # load config file and apply custom cli options
-        config = read_json(self.cfg_fname)
+        config = SourceFileLoader("CONFIG", str(self.cfg_fname)).load_module().CONFIG
         self.__config = _update_config(config, options, args)
 
         # set save_dir where trained model and log will be saved.
@@ -43,7 +45,8 @@ class ConfigParser:
         self.log_dir.mkdir(parents=True, exist_ok=True)
 
         # save updated config file to the checkpoint dir
-        write_json(self.config, self.save_dir / 'config.json')
+        # write_json(self.config, self.save_dir / 'config.json')
+        write_config(self.config, self.save_dir / 'config.py')
 
         # configure logging module
         setup_logging(self.log_dir)

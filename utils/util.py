@@ -21,6 +21,13 @@ def write_json(content, fname):
         json.dump(content, handle, indent=4, sort_keys=False)
 
 
+def write_config(content, fname):
+    with fname.open('wt') as handle:
+        handle.write("CONFIG = " + str(content))
+        handle.close()
+
+
+
 def retrieve_sub_folder_paths(root):
     dir_paths = []
     for subdir in filter(lambda x: os.path.isdir(x), map(lambda x: os.path.join(root, x), os.listdir(root))):
