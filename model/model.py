@@ -36,19 +36,20 @@ class Hourglass(BaseModel):
         self.channels = num_channels
         self.num_blocks = num_blocks
 
-        pre_bottleneck_blocks, intermediate_bottleneck_blocks, post_bottleneck_blocks = [], [], []
+        pre_bottleneck_blocks, intermediate_bottleneck_blocks, post_bottleneck_blocks, transpose_convs = [], [], [], []
         for _ in range(self.num_blocks):
             pre_bottleneck_blocks.append(Bottleneck(self.channels, kernel_size))
             intermediate_bottleneck_blocks.append(Bottleneck(self.channels, kernel_size))
             post_bottleneck_blocks.append(Bottleneck(self.channels, kernel_size))
+            transpose_convs.append(nn.ConvTranspose2d(self.channels, self.channels, 4, stride=2, padding=1))
 
         self.pre_bottleneck_blocks = nn.ModuleList(pre_bottleneck_blocks)
         self.intermediate_bottleneck_blocks = nn.ModuleList(intermediate_bottleneck_blocks)
         self.post_bottleneck_blocks = nn.ModuleList(post_bottleneck_blocks)
+        self.transpose_convs = nn.ModuleList(transpose_convs)
 
         self.bottlenecks = nn.ModuleList([Bottleneck(self.channels, kernel_size) for _ in range(3)])
         self.max_pool = nn.MaxPool2d(2)
-        self.trans_conv1 = nn.ConvTranspose2d(self.channels, self.channels, 4, stride=2, padding=1)
 
     def forward(self, x):
         identities = []
@@ -62,7 +63,7 @@ class Hourglass(BaseModel):
             x = self.bottlenecks[i](x)
 
         for i in range(self.num_blocks):
-            x = self.trans_conv1(x)
+            x = self.transpose_convs[i](x)
             x = self.post_bottleneck_blocks[i](x)
             x += identities[self.num_blocks - i - 1]
 
