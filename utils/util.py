@@ -27,7 +27,6 @@ def write_config(content, fname):
         handle.close()
 
 
-
 def retrieve_sub_folder_paths(root):
     dir_paths = []
     for subdir in filter(lambda x: os.path.isdir(x), map(lambda x: os.path.join(root, x), os.listdir(root))):

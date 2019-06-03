@@ -4,9 +4,10 @@ CONFIG = {
     "arch": {
         "type": "StackedHourglassNet",
         "args": {
-            "num_channels": 128,
-            "num_stacks": 1,
-            "num_blocks": 7
+            "num_channels": 64,
+            "num_stacks": 4,
+            "num_blocks": 7,
+            "kernel_size": 5
         }
     },
     "data_loader": {
@@ -30,7 +31,8 @@ CONFIG = {
     "loss": "smooth_l1_loss",
     "metrics": [
         "percentage_correct_keypoints",
-        "keypoint_distance_loss"
+        "keypoint_distance_loss",
+        "mse_loss"
     ],
     "lr_scheduler": {
         "type": "StepLR",
@@ -40,16 +42,16 @@ CONFIG = {
         }
     },
     "trainer": {
-        "epochs": 1,
+        "epochs": 50,
         "save_dir": "saved/",
         "save_period": 10,
         "verbosity": 2,
         "monitor": "min val_loss",
-        "early_stop": 50,
+        "early_stop": 10,
         "tensorboardX": True
     },
     'fraction_of_dataset': 0.1,
-    'sigma': 5,
+    'sigma': 20,
     'threshold': 0.01,
-    'prediction_blur': 5,
+    'prediction_blur': 20,
 }

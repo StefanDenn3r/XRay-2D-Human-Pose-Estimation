@@ -5,7 +5,7 @@ import data_loader.data_loaders as module_data
 import model.loss as module_loss
 import model.metric as module_metric
 import model.model as module_arch
-from parse_config import ConfigParser
+from parse_config import ConfigParser, parse_cmd_args
 from trainer import Trainer
 
 
@@ -36,7 +36,7 @@ def main(config):
                       valid_data_loader=valid_data_loader,
                       lr_scheduler=lr_scheduler)
 
-    trainer.train()
+    return trainer.train()
 
 
 if __name__ == '__main__':
@@ -54,5 +54,5 @@ if __name__ == '__main__':
         CustomArgs(['--lr', '--learning_rate'], type=float, target=('optimizer', 'args', 'lr')),
         CustomArgs(['--bs', '--batch_size'], type=int, target=('data_loader', 'args', 'batch_size'))
     ]
-    config = ConfigParser(args, options)
+    config = ConfigParser(*parse_cmd_args(args, options))
     main(config)

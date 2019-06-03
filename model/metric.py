@@ -4,6 +4,7 @@ from scipy.ndimage import gaussian_filter
 from utils import util
 from config import CONFIG
 
+
 def smooth_l1_loss(output, target):
     # Uses Huber Loss
     return util.apply_loss(nn.SmoothL1Loss(), output, target)
@@ -13,12 +14,8 @@ def l1_loss(output, target):
     return util.apply_loss(nn.L1Loss(reduction='mean'), output, target)
 
 
-def logistic_loss(output, target):
-    return util.apply_loss(nn.SoftMarginLoss(reduction='mean'), output, target)
-
-
-def binary_cross_entropy(output, target):
-    return util.apply_loss(nn.BCELoss(reduction='mean'), output, target)
+def mse_loss(output, target):
+    return util.apply_loss(nn.MSELoss(reduction='mean'), output, target)
 
 
 def percentage_correct_keypoints(output, target):

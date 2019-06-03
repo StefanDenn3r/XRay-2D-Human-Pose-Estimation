@@ -1,37 +1,41 @@
 import logging
-import logging
 import os
 from datetime import datetime
 from functools import reduce
+from importlib.machinery import SourceFileLoader
 from operator import getitem
 from pathlib import Path
 
 from logger import setup_logging
 from utils.util import write_config
-from importlib.machinery import SourceFileLoader
+
+
+def parse_cmd_args(args, options=''):
+    # parse default and custom cli options
+    for opt in options:
+        args.add_argument(*opt.flags, default=None, type=opt.type)
+    args = args.parse_args()
+
+    if args.device:
+        os.environ["CUDA_VISIBLE_DEVICES"] = args.device
+    if args.resume:
+        resume = Path(args.resume)
+        cfg_fname = resume.parent / 'config.py'
+    else:
+        msg_no_cfg = "Configuration file need to be specified. Add '-c config.py', for example."
+        assert args.config is not None, msg_no_cfg
+        resume = None
+        cfg_fname = Path(args.config)
+
+    # load config file and apply custom cli options
+    config = SourceFileLoader("CONFIG", str(cfg_fname)).load_module().CONFIG
+    return _update_config(config, options, args), resume
 
 
 class ConfigParser:
-    def __init__(self, args, options='', timestamp=True):
-        # parse default and custom cli options
-        for opt in options:
-            args.add_argument(*opt.flags, default=None, type=opt.type)
-        args = args.parse_args()
-
-        if args.device:
-            os.environ["CUDA_VISIBLE_DEVICES"] = args.device
-        if args.resume:
-            self.resume = Path(args.resume)
-            self.cfg_fname = self.resume.parent / 'config.py'
-        else:
-            msg_no_cfg = "Configuration file need to be specified. Add '-c config.py', for example."
-            assert args.config is not None, msg_no_cfg
-            self.resume = None
-            self.cfg_fname = Path(args.config)
-
-        # load config file and apply custom cli options
-        config = SourceFileLoader("CONFIG", str(self.cfg_fname)).load_module().CONFIG
-        self.__config = _update_config(config, options, args)
+    def __init__(self, config, resume=None, timestamp=True):
+        self.__config = config
+        self.resume = resume
 
         # set save_dir where trained model and log will be saved.
         save_dir = Path(self.config['trainer']['save_dir'])

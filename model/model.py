@@ -5,10 +5,10 @@ from base import BaseModel
 
 
 class Bottleneck(BaseModel):
-    def __init__(self, in_channels):
+    def __init__(self, in_channels, kernel_size):
         super(Bottleneck, self).__init__()
         self.conv1 = nn.Conv2d(in_channels, in_channels // 2, 1)
-        self.conv2 = nn.Conv2d(in_channels // 2, in_channels, 3, padding=1)
+        self.conv2 = nn.Conv2d(in_channels // 2, in_channels, kernel_size, padding=((kernel_size - 1) // 2))
         self.conv3 = nn.Conv2d(in_channels, in_channels, 1)
         self.relu = nn.ReLU()
 
@@ -30,7 +30,7 @@ class Bottleneck(BaseModel):
 
 
 class Hourglass(BaseModel):
-    def __init__(self, num_blocks=4, num_channels=32):
+    def __init__(self, num_blocks=4, num_channels=32, kernel_size=3):
         super(Hourglass, self).__init__()
 
         self.channels = num_channels
@@ -38,15 +38,15 @@ class Hourglass(BaseModel):
 
         pre_bottleneck_blocks, intermediate_bottleneck_blocks, post_bottleneck_blocks = [], [], []
         for _ in range(self.num_blocks):
-            pre_bottleneck_blocks.append(Bottleneck(self.channels))
-            intermediate_bottleneck_blocks.append(Bottleneck(self.channels))
-            post_bottleneck_blocks.append(Bottleneck(self.channels))
+            pre_bottleneck_blocks.append(Bottleneck(self.channels, kernel_size))
+            intermediate_bottleneck_blocks.append(Bottleneck(self.channels, kernel_size))
+            post_bottleneck_blocks.append(Bottleneck(self.channels, kernel_size))
 
         self.pre_bottleneck_blocks = nn.ModuleList(pre_bottleneck_blocks)
         self.intermediate_bottleneck_blocks = nn.ModuleList(intermediate_bottleneck_blocks)
         self.post_bottleneck_blocks = nn.ModuleList(post_bottleneck_blocks)
 
-        self.bottlenecks = nn.ModuleList([Bottleneck(self.channels) for _ in range(3)])
+        self.bottlenecks = nn.ModuleList([Bottleneck(self.channels, kernel_size) for _ in range(3)])
         self.max_pool = nn.MaxPool2d(2)
         self.trans_conv1 = nn.ConvTranspose2d(self.channels, self.channels, 4, stride=2, padding=1)
 
@@ -72,7 +72,7 @@ class Hourglass(BaseModel):
 class StackedHourglassNet(BaseModel):
     """Hourglass model from Newell et al ECCV 2016"""
 
-    def __init__(self, num_stacks=3, num_blocks=1, num_channels=32, num_classes=23):
+    def __init__(self, num_stacks=3, num_blocks=1, num_channels=32, num_classes=23, kernel_size=3):
         super(StackedHourglassNet, self).__init__()
 
         assert (1 <= num_blocks <= 2, "invalid number of blocks [1, 2]")
@@ -80,19 +80,19 @@ class StackedHourglassNet(BaseModel):
         self.num_stacks = num_stacks
         self.init_channels = num_channels
         self.channels = num_channels
-        self.conv1 = nn.Conv2d(1, self.channels, (1,3), (2,3), padding=(8,38))
-        self.conv2 = nn.Conv2d(self.channels, self.channels, (1,3), 1, padding=(4,14))
+        self.conv1 = nn.Conv2d(1, self.channels, (1, 3), (2, 3), padding=(8, 38))
+        self.conv2 = nn.Conv2d(self.channels, self.channels, (1, 3), 1, padding=(4, 14))
         self.relu = nn.ReLU()
 
         hgs, intermediate_conv1, intermediate_conv2, loss_conv, intermediate_conv3 = [], [], [], [], []
         for i in range(self.num_stacks):
             hgs.append(Hourglass(num_blocks, self.channels))
 
-            intermediate_conv1.append(Bottleneck(self.channels))
+            intermediate_conv1.append(Bottleneck(self.channels, kernel_size))
 
             loss_conv.append(nn.Conv2d(self.channels, num_classes, 1))
             if i < self.num_stacks - 1:
-                intermediate_conv2.append(Bottleneck(self.channels))
+                intermediate_conv2.append(Bottleneck(self.channels, kernel_size))
                 intermediate_conv3.append(nn.Conv2d(num_classes, self.channels, 1))
 
         self.hgs = nn.ModuleList(hgs)
