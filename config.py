@@ -4,10 +4,10 @@ CONFIG = {
     "arch": {
         "type": "StackedHourglassNet",
         "args": {
-            "num_channels": 64,
-            "num_stacks": 4,
-            "num_blocks": 7,
-            "kernel_size": 5
+            "num_channels": 128,
+            "num_stacks": 2,
+            "num_blocks": 4,
+            "kernel_size": 7
         }
     },
     "data_loader": {
@@ -51,7 +51,9 @@ CONFIG = {
         "tensorboardX": True
     },
     'fraction_of_dataset': 0.1,
-    'sigma': 20,
+    'sigma': 5,
     'threshold': 0.01,
-    'prediction_blur': 20,
+    'prediction_blur': 1,
+    'rescale_X': 256,
+    'rescale_Y': 256
 }

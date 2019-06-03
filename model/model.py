@@ -41,7 +41,8 @@ class Hourglass(BaseModel):
             pre_bottleneck_blocks.append(Bottleneck(self.channels, kernel_size))
             intermediate_bottleneck_blocks.append(Bottleneck(self.channels, kernel_size))
             post_bottleneck_blocks.append(Bottleneck(self.channels, kernel_size))
-            transpose_convs.append(nn.ConvTranspose2d(self.channels, self.channels, 4, stride=2, padding=1))
+            transpose_convs.append(nn.ConvTranspose2d(self.channels, self.channels, kernel_size + 1, stride=2,
+                                                      padding=((kernel_size - 1) // 2)))
 
         self.pre_bottleneck_blocks = nn.ModuleList(pre_bottleneck_blocks)
         self.intermediate_bottleneck_blocks = nn.ModuleList(intermediate_bottleneck_blocks)
@@ -81,8 +82,9 @@ class StackedHourglassNet(BaseModel):
         self.num_stacks = num_stacks
         self.init_channels = num_channels
         self.channels = num_channels
-        self.conv1 = nn.Conv2d(1, self.channels, (1, 3), (2, 3), padding=(8, 38))
-        self.conv2 = nn.Conv2d(self.channels, self.channels, (1, 3), 1, padding=(4, 14))
+        self.conv1 = nn.Conv2d(1, self.channels, kernel_size, padding=((kernel_size - 1) // 2))
+        # self.conv1 = nn.Conv2d(1, self.channels, (1, 3), (2, 3), padding=(8, 38))
+        # self.conv2 = nn.Conv2d(self.channels, self.channels, (1, 3), 1, padding=(4, 14))
         self.relu = nn.ReLU()
 
         hgs, intermediate_conv1, intermediate_conv2, loss_conv, intermediate_conv3 = [], [], [], [], []
@@ -106,8 +108,8 @@ class StackedHourglassNet(BaseModel):
         out = []
         x = self.conv1(x)
         x = self.relu(x)
-        x = self.conv2(x)
-        x = self.relu(x)
+        # x = self.conv2(x)
+        # x = self.relu(x)
 
         for i in range(self.num_stacks):
             hourglass_identity = x

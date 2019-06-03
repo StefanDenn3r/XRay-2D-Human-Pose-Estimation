@@ -1,12 +1,13 @@
+from custom_transforms.Resize import Resize
 from torchvision import transforms
 
 from Dataset.XRayDataset import XRayDataset
 from base import BaseDataLoader
+from config import CONFIG
 from custom_transforms.Gaussfilter import Gaussfilter
 from custom_transforms.Normalize import Normalize
 from custom_transforms.ToTensor import ToTensor
-from custom_transforms.ResizeLabels import ResizeLabels
-from config import CONFIG
+
 
 class XRayDataLoader(BaseDataLoader):
     """
@@ -17,7 +18,7 @@ class XRayDataLoader(BaseDataLoader):
         trsfm = transforms.Compose([
             Gaussfilter(CONFIG['sigma']),
             Normalize(),
-            ResizeLabels(),
+            Resize((CONFIG['rescale_X'], CONFIG['rescale_Y'])),
             ToTensor()
         ])
 

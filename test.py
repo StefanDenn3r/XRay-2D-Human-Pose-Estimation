@@ -1,16 +1,18 @@
 import argparse
 
-import cv2
 import numpy as np
 import torch
 from PIL import Image
+from scipy.ndimage import gaussian_filter
 from tqdm import tqdm
 
 import data_loader.data_loaders as module_data
 import model.loss as module_loss
 import model.metric as module_metric
 import model.model as module_arch
+from config import CONFIG
 from parse_config import ConfigParser, parse_cmd_args
+from utils.illustration_utils import draw_terrain
 
 
 def main(config, resume):
@@ -57,29 +59,32 @@ def main(config, resume):
             #
             # begin custom
             #
-
+            target = target.cpu().detach().numpy()
+            output = output[-1].cpu().detach().numpy()  # only last one relevant for final prediction
             target_landmarks = [[np.unravel_index(np.argmax(i_target[idx], axis=None), i_target[idx].shape)
-                                 for idx in range(i_target.shape[0])] for i_target in target.numpy()]
+                                 for idx in range(i_target.shape[0])] for i_target in target]
+
+            output = np.array([gaussian_filter(i_output, sigma=CONFIG['prediction_blur']) for i_output in output])
+
             pred_landmarks = [[np.unravel_index(np.argmax(i_output[idx], axis=None), i_output[idx].shape)
-                               for idx in range(i_output.shape[0])] for i_output in output[-1].numpy()] # only last one relevant for final prediction
+                               for idx in range(i_output.shape[0])] for i_output in output]
 
             for idx, image in enumerate(data.numpy()):
-                channels, height, width = image.shape
+                image_target = np.copy(image[0])
+                image_pred = np.copy(image[0])
 
-                img = cv2.resize(image[0], (width // 2, height // 2), cv2.INTER_CUBIC)
+                for channel_idx, (y, x) in enumerate(target_landmarks[idx]):
+                    if np.sum(target[idx, channel_idx]) > 0:
+                        image_target[y, x] = 1
 
-                image_target = np.copy(img)
-                image_pred = np.copy(img)
-
-                for (y, x) in target_landmarks[idx]:
-                    image_target[y, x] = 1
-
-                for (y, x) in pred_landmarks[idx]:
-                    image_pred[y, x] = 1
+                for channel_idx, (y, x) in enumerate(pred_landmarks[idx]):
+                    draw_terrain(output[idx, channel_idx])
+                    if output[idx, channel_idx, y, x] > CONFIG['threshold']:
+                        image_pred[y, x] = 1
 
                 # do breakpoints here! first iteration is validation image, second is training
-                Image.fromarray(image_target*255).show(f'{idx}_target')
-                Image.fromarray(image_pred*255).show(f'{idx}_pred')
+                Image.fromarray(image_target * 255).show(f'{idx}_target')
+                Image.fromarray(image_pred * 255).show(f'{idx}_pred')
 
             #
             # end custom
