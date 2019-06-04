@@ -90,7 +90,7 @@ class StackedHourglassNet(BaseModel):
 
         hgs, intermediate_conv1, intermediate_conv2, loss_conv, intermediate_conv3 = [], [], [], [], []
         for i in range(self.num_stacks):
-            hgs.append(Hourglass(num_blocks, self.channels))
+            hgs.append(Hourglass(num_blocks, self.channels, kernel_size))
 
             intermediate_conv1.append(Bottleneck(self.channels, kernel_size))
 

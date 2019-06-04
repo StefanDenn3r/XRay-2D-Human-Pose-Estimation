@@ -3,6 +3,7 @@ import torch
 from torchvision.utils import make_grid
 
 from base import BaseTrainer
+from config import CONFIG
 
 
 class Trainer(BaseTrainer):
@@ -78,16 +79,38 @@ class Trainer(BaseTrainer):
                 target = target.cpu().detach().numpy()
                 output = output[-1].cpu().detach().numpy()  # only last one relevant for final prediction
 
-                for idx in range(data.cpu().detach().numpy().shape[0]):
+                target_landmarks = [[np.unravel_index(np.argmax(i_target[idx], axis=None), i_target[idx].shape)
+                                     for idx in range(i_target.shape[0])] for i_target in target]
 
+                pred_landmarks = [[np.unravel_index(np.argmax(i_output[idx], axis=None), i_output[idx].shape)
+                                   for idx in range(i_output.shape[0])] for i_output in output]
+
+                for idx, image in enumerate(data.cpu().detach().numpy()):
+                    arr = []
                     for channel_idx in range(target[idx].shape[0]):
-                        self.writer.add_image(f'target_output_{channel_idx}',
-                                              make_grid(torch.tensor([
-                                                  np.expand_dims(target[idx, channel_idx], axis=0),
-                                                  np.expand_dims(output[idx, channel_idx], axis=0)
-                                              ])
-                                                  , nrow=2,
-                                                  normalize=False))
+                        arr.append(np.expand_dims(target[idx, channel_idx], axis=0)),
+                        arr.append(np.expand_dims(output[idx, channel_idx], axis=0))
+
+                    self.writer.add_image(f'target_output_{idx}', make_grid(torch.tensor(arr), range=(0, 1)))
+
+                    image_target = np.copy(image[0])
+                    image_pred = np.copy(image[0])
+                    radius = 5
+                    for channel_idx, (y, x) in enumerate(target_landmarks[idx]):
+                        if np.sum(target[idx, channel_idx]) > 0:
+                            image_target[(y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 1
+                            # image_target[y, x] = 1
+
+                    for channel_idx, (y, x) in enumerate(pred_landmarks[idx]):
+                        if output[idx, channel_idx, y, x] > CONFIG['threshold']:
+                            image_pred[(y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 1
+                            # image_pred[y, x] = 1
+
+                    self.writer.add_image(f'target_predictions_{idx}',
+                                          make_grid(torch.tensor([
+                                              np.expand_dims(image_target * 255, axis=0),
+                                              np.expand_dims(image_pred * 255, axis=0)
+                                          ]), nrow=2, normalize=True))
 
                 # custom end
 
@@ -130,7 +153,7 @@ class Trainer(BaseTrainer):
                 self.writer.add_scalar('loss', loss.item())
                 total_val_loss += loss.item()
                 total_val_metrics += self._eval_metrics(output, target)
-                self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
+                # self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
 
         # add histogram of model parameters to the tensorboard
         for name, p in self.model.named_parameters():

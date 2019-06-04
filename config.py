@@ -44,7 +44,7 @@ CONFIG = {
     "trainer": {
         "epochs": 200,
         "save_dir": "saved/",
-        "save_period": 1,
+        "save_period": 20,
         "verbosity": 2,
         "monitor": "min val_loss",
         "early_stop": 20,
