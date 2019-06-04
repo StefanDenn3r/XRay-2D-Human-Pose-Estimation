@@ -4,8 +4,8 @@ CONFIG = {
     "arch": {
         "type": "StackedHourglassNet",
         "args": {
-            "num_channels": 5,
-            "num_stacks": 1,
+            "num_channels": 128,
+            "num_stacks": 2,
             "num_blocks": 4,
             "kernel_size": 7
         }

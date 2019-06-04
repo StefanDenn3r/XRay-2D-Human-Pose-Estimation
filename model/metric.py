@@ -12,11 +12,11 @@ def smooth_l1_loss(output, target):
 
 
 def l1_loss(output, target):
-    return util.apply_loss(nn.L1Loss(reduction='mean'), output, target)
+    return util.apply_loss(nn.L1Loss(reduction='sum'), output, target)
 
 
 def mse_loss(output, target):
-    return util.apply_loss(nn.MSELoss(reduction='mean'), output, target)
+    return util.apply_loss(nn.MSELoss(reduction='sum'), output, target)
 
 
 def percentage_correct_keypoints(output, target):

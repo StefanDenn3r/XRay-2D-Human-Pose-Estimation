@@ -4,7 +4,7 @@ from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
 
-
+import numpy as np
 def ensure_dir(dirname):
     dirname = Path(dirname)
     if not dirname.is_dir():
@@ -37,15 +37,15 @@ def retrieve_sub_folder_paths(root):
 
 def apply_loss(criterion, output, target):
     batch_size = output.size(1)
-    num_joints = output.size(0)
-    heatmaps_pred = output.reshape((batch_size, num_joints, -1)).split(1, 1)
-    heatmaps_gt = target.reshape((batch_size, 1, -1))
+    num_stacks = output.size(0)
+    heatmaps_pred = output.reshape((batch_size, num_stacks, -1)).split(1, 1)
+    heatmaps_gt = target.reshape((batch_size, 1, -1)).flatten()
     loss = 0
-    for idx in range(num_joints):
-        heatmap_pred = heatmaps_pred[idx].squeeze()
+    for idx in range(num_stacks):
+        heatmap_pred = heatmaps_pred[idx].flatten()
         heatmap_gt = heatmaps_gt
         loss += criterion(heatmap_pred, heatmap_gt)
-    return loss / num_joints
+    return loss / num_stacks
 
 
 class Timer:

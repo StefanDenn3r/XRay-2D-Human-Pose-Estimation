@@ -9,7 +9,7 @@ def draw_terrain(output):
     X, Y = np.meshgrid(np.arange(X_shape), np.arange(Y_shape))
     heights = output
     ax.plot_surface(X, Y, heights, cmap=plt.get_cmap('jet'))
-    ax.set_zlim(-1, 1)
+   # ax.set_zlim(0, 1)
     plt.show()
 
 
