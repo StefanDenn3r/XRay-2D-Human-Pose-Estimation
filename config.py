@@ -4,8 +4,8 @@ CONFIG = {
     "arch": {
         "type": "StackedHourglassNet",
         "args": {
-            "num_channels": 128,
-            "num_stacks": 2,
+            "num_channels": 5,
+            "num_stacks": 1,
             "num_blocks": 4,
             "kernel_size": 7
         }
@@ -42,16 +42,16 @@ CONFIG = {
         }
     },
     "trainer": {
-        "epochs": 50,
+        "epochs": 200,
         "save_dir": "saved/",
-        "save_period": 10,
+        "save_period": 1,
         "verbosity": 2,
         "monitor": "min val_loss",
-        "early_stop": 10,
+        "early_stop": 20,
         "tensorboardX": True
     },
     'fraction_of_dataset': 0.1,
-    'sigma': 5,
+    'sigma': 20,
     'threshold': 0.01,
     'prediction_blur': 1,
     'rescale_X': 256,

@@ -14,7 +14,7 @@ def bayesian_opt(num_channels, num_stacks, num_blocks, kernel_size, sigma=5, pre
     CONFIG['sigma'] = sigma
     CONFIG['prediction_blur'] = prediction_blur
     CONFIG['threshold'] = threshold
-    CONFIG['trainer']['epochs'] = epochs
+    CONFIG['trainer']['epochs'] = int(epochs)
     return - main(ConfigParser(CONFIG))
 
 
@@ -27,7 +27,7 @@ def run_bayes_opt(pbounds, init_points=10, n_iter=10):
     optimizer.maximize(init_points=init_points, n_iter=n_iter)
 
 
-pbounds = {
+ranges = {
     'num_channels': (6, 8),  # {64, 128, 256}
     'num_stacks': (2, 8),
     'num_blocks': (1, 7),
@@ -35,5 +35,16 @@ pbounds = {
     # 'sigma': (1, 10),
     # 'prediction_blur': (1, 10),
     # 'threshold': (0.00001, 0.2)
+    'epochs': (1, 3)
 }
-run_bayes_opt(pbounds, 10, 10)
+run_bayes_opt({
+    'num_channels': (6, 8),  # {64, 128, 256}
+    'num_stacks': (2, 7),
+    'num_blocks': (1, 7),
+    'kernel_size': (1, 4),  # {3, 5, 7, 9}
+    'sigma': (0.6, 5),
+    'prediction_blur': (0.01, 1),
+    'threshold': (0.00001, 0.2),
+    'epochs': (200, 200)
+
+}, init_points=10, n_iter=10)

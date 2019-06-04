@@ -72,6 +72,25 @@ class Trainer(BaseTrainer):
                     self.data_loader.n_samples,
                     100.0 * batch_idx / len(self.data_loader),
                     loss.item()))
+
+                # custom begin
+
+                target = target.cpu().detach().numpy()
+                output = output[-1].cpu().detach().numpy()  # only last one relevant for final prediction
+
+                for idx in range(data.cpu().detach().numpy().shape[0]):
+
+                    for channel_idx in range(target[idx].shape[0]):
+                        self.writer.add_image(f'target_output_{channel_idx}',
+                                              make_grid(torch.tensor([
+                                                  np.expand_dims(target[idx, channel_idx], axis=0),
+                                                  np.expand_dims(output[idx, channel_idx], axis=0)
+                                              ])
+                                                  , nrow=2,
+                                                  normalize=False))
+
+                # custom end
+
                 self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
 
         log = {

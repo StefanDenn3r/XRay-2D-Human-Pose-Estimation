@@ -1,6 +1,6 @@
 import glob
 import os
-
+import PIL.Image as Image
 import cv2
 import numpy as np
 from torch.utils.data import Dataset
@@ -47,7 +47,14 @@ class XRayDataset(Dataset):
     def __getitem__(self, idx):
         item_dir = self.data_dir_paths[idx]
 
-        image = cv2.imread(glob.glob(os.path.join(item_dir, "*.png"))[0], 0)
+        im = Image.open(glob.glob(os.path.join(item_dir, "*.png"))[0])
+        im = np.asarray(im)
+        im = np.float32(im)
+        maxI = np.max(im)
+        minI = np.min(im)
+        im = (im - minI) / (maxI - minI)
+        image = np.asarray(im)
+       # image = Image.open(glob.glob(os.path.join(item_dir, "*.png"))[0], 0)
 
         (height, width) = image.shape
 
