@@ -14,9 +14,9 @@ CONFIG = {
         "type": "XRayDataLoader",
         "args": {
             "data_dir": "data/XRay/Patient_0",
-            "batch_size": 5,
+            "batch_size": 1,
             "shuffle": False,
-            "validation_split": 0.2,
+            "validation_split": 0.0,
             "num_workers": 0
         }
     },
@@ -50,7 +50,7 @@ CONFIG = {
         "early_stop": 20,
         "tensorboardX": True
     },
-    'fraction_of_dataset': 1,
+    'fraction_of_dataset': 0.03,
     'sigma': 20,
     'threshold': 0.01,
     'prediction_blur': 1,
