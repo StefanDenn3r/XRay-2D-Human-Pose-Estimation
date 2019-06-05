@@ -78,7 +78,7 @@ class StackedHourglassNet(BaseModel):
     def __init__(self, num_stacks=3, num_blocks=1, num_channels=32, num_classes=23, kernel_size=3):
         super(StackedHourglassNet, self).__init__()
 
-        assert (1 <= num_blocks <= 2, "invalid number of blocks [1, 2]")
+        assert (1 <= num_blocks <= 7, "invalid number of blocks [1, 7]")
 
         self.num_stacks = num_stacks
         self.init_channels = num_channels

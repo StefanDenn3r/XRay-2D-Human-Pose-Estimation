@@ -4,7 +4,7 @@ CONFIG = {
     "arch": {
         "type": "StackedHourglassNet",
         "args": {
-            "num_channels": 128,
+            "num_channels": 256,
             "num_stacks": 2,
             "num_blocks": 4,
             "kernel_size": 7
@@ -13,10 +13,10 @@ CONFIG = {
     "data_loader": {
         "type": "XRayDataLoader",
         "args": {
-            "data_dir": "data/XRay/Ex3",
-            "batch_size": 1,
+            "data_dir": "data/XRay/Patient_0",
+            "batch_size": 5,
             "shuffle": False,
-            "validation_split": 0.5,
+            "validation_split": 0.2,
             "num_workers": 0
         }
     },
@@ -50,7 +50,7 @@ CONFIG = {
         "early_stop": 20,
         "tensorboardX": True
     },
-    'fraction_of_dataset': 0.1,
+    'fraction_of_dataset': 1,
     'sigma': 20,
     'threshold': 0.01,
     'prediction_blur': 1,
