@@ -60,7 +60,7 @@ def main(config, resume):
             # begin custom
             #
             target = target.cpu().detach().numpy()
-            output = output[-1].cpu().detach().numpy()  # only last one relevant for final prediction
+            output = output.cpu().detach().numpy()  # only last one relevant for final prediction
             target_landmarks = [[np.unravel_index(np.argmax(i_target[idx], axis=None), i_target[idx].shape)
                                  for idx in range(i_target.shape[0])] for i_target in target]
 

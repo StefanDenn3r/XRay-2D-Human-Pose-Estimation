@@ -2,21 +2,18 @@ CONFIG = {
     "name": "XRay",
     "n_gpu": 1,
     "arch": {
-        "type": "StackedHourglassNet",
+        "type": "ConvolutionalPoseMachine",
         "args": {
-            "num_channels": 256,
-            "num_stacks": 2,
-            "num_blocks": 4,
-            "kernel_size": 7
+
         }
     },
     "data_loader": {
         "type": "XRayDataLoader",
         "args": {
             "data_dir": "data/XRay/Patient_0",
-            "batch_size": 1,
+            "batch_size": 5,
             "shuffle": False,
-            "validation_split": 0.0,
+            "validation_split": 0.2,
             "num_workers": 0
         }
     },
@@ -50,8 +47,8 @@ CONFIG = {
         "early_stop": 20,
         "tensorboardX": True
     },
-    'fraction_of_dataset': 0.03,
-    'sigma': 20,
+    'fraction_of_dataset': 0.1,
+    'sigma': 80,
     'threshold': 0.01,
     'prediction_blur': 1,
     'rescale_X': 256,
