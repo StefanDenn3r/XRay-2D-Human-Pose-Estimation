@@ -35,6 +35,19 @@ def retrieve_sub_folder_paths(root):
     return dir_paths
 
 
+def apply_loss(criterion, output, target):
+    batch_size = output.size(1) # todo: (output.shape, target.shape): (torch.Size([3, 2, 23, 28, 28]), torch.Size([2, 23, 256, 256])) => mismatch: 28 != 256
+    num_stages = output.size(0)
+    heatmaps_pred = output.reshape((batch_size, num_stages, -1)).split(1, 1)
+    heatmaps_gt = target.reshape((batch_size, 1, -1)).flatten()
+    loss = 0
+    for idx in range(num_stages):
+        heatmap_pred = heatmaps_pred[idx].flatten()
+        heatmap_gt = heatmaps_gt
+        loss += criterion(heatmap_pred, heatmap_gt)
+    return loss / num_stages
+
+
 class Timer:
     def __init__(self):
         self.cache = datetime.now()

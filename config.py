@@ -2,16 +2,19 @@ CONFIG = {
     "name": "XRay",
     "n_gpu": 1,
     "arch": {
-        "type": "ConvolutionalPoseMachine",
+        "type": "ConvolutionalPoseMachines",
         "args": {
-
+            "x_channels": 128,
+            "stage_channels": 512,
+            "num_stages": 3,
+            "num_classes": 23
         }
     },
     "data_loader": {
         "type": "XRayDataLoader",
         "args": {
             "data_dir": "data/XRay/Patient_0",
-            "batch_size": 5,
+            "batch_size": 2,
             "shuffle": False,
             "validation_split": 0.2,
             "num_workers": 0
@@ -41,7 +44,7 @@ CONFIG = {
     "trainer": {
         "epochs": 200,
         "save_dir": "saved/",
-        "save_period": 20,
+        "save_period": 1,
         "verbosity": 2,
         "monitor": "min val_loss",
         "early_stop": 20,
