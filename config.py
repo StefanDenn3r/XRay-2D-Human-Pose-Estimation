@@ -6,7 +6,7 @@ CONFIG = {
         "args": {
             "x_channels": 128,
             "stage_channels": 512,
-            "num_stages": 3,
+            "num_stages": 5,
             "num_classes": 23
         }
     },
@@ -14,9 +14,9 @@ CONFIG = {
         "type": "XRayDataLoader",
         "args": {
             "data_dir": "data/XRay/Patient_0",
-            "batch_size": 2,
+            "batch_size": 1,
             "shuffle": False,
-            "validation_split": 0.2,
+            "validation_split": 0.0,
             "num_workers": 0
         }
     },
@@ -54,6 +54,8 @@ CONFIG = {
     'sigma': 80,
     'threshold': 0.01,
     'prediction_blur': 1,
-    'rescale_X': 256,
-    'rescale_Y': 256
+    'rescale_X_input': 256,
+    'rescale_Y_input': 256,
+    'rescale_X_target': 32,
+    'rescale_Y_target': 32
 }

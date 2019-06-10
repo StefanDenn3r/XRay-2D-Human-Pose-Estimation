@@ -78,7 +78,7 @@ class Trainer(BaseTrainer):
                 # custom begin
 
                 target = target.cpu().detach().numpy()
-                output = output.cpu().detach().numpy()  # only last one relevant for final prediction
+                output = output[-1].cpu().detach().numpy()  # only last one relevant for final prediction
 
                 target_landmarks = [[np.unravel_index(np.argmax(i_target[idx], axis=None), i_target[idx].shape)
                                      for idx in range(i_target.shape[0])] for i_target in target]
@@ -97,13 +97,16 @@ class Trainer(BaseTrainer):
                     image_target = np.copy(image[0])
                     image_pred = np.copy(image[0])
                     radius = 5
+                    stride = image_target.shape[-1] // output.shape[-1]
                     for channel_idx, (y, x) in enumerate(target_landmarks[idx]):
                         if np.sum(target[idx, channel_idx]) > 0:
+                            y, x = y * stride, x * stride
                             image_target[(y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 1
                             # image_target[y, x] = 1
 
                     for channel_idx, (y, x) in enumerate(pred_landmarks[idx]):
                         if output[idx, channel_idx, y, x] > CONFIG['threshold']:
+                            y, x = y * stride, x * stride
                             image_pred[(y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 1
                             # image_pred[y, x] = 1
 

@@ -16,7 +16,7 @@ class X(BaseModel):
             nn.Conv2d(1, x_channels, kernel_size=9, padding=same_padding(9)),
             nn.Conv2d(x_channels, x_channels, kernel_size=9, padding=same_padding(9)),
             nn.Conv2d(x_channels, x_channels, kernel_size=9, padding=same_padding(9)),
-            nn.Conv2d(x_channels, 32, kernel_size=5, padding=same_padding(2))
+            nn.Conv2d(x_channels, 32, kernel_size=5, padding=same_padding(5))
         ])
 
         self.max_pool = nn.MaxPool2d(3, 2, 1)
@@ -42,7 +42,7 @@ class Stage1(BaseModel):
             nn.Conv2d(stage_channels, num_classes, kernel_size=1)
         ])
 
-        self.max_pool = nn.MaxPool2d(3, 2, 1)
+        self.max_pool = nn.MaxPool2d(3, 2, same_padding(3))
         self.relu = nn.ReLU()
 
     def forward(self, x):
@@ -67,7 +67,7 @@ class StageN(BaseModel):
             nn.Conv2d(x_channels, num_classes, kernel_size=1),
         ])
 
-        self.max_pool = nn.MaxPool2d(3, 2, 1)
+        self.max_pool = nn.MaxPool2d(3, 2, same_padding(3))
         self.relu = nn.ReLU()
 
     def forward(self, x, image):
