@@ -4,46 +4,41 @@ import torch.nn as nn
 from base import BaseModel
 
 
-def same_padding(kernel_size, dilation=1):
+def same_padding(kernel_size, dilation):
     return (kernel_size + (kernel_size - 1) * (dilation - 1) - 1) // 2
 
 
-
 class X(BaseModel):
-    def __init__(self, x_channels=128,  dilation=1):
+    def __init__(self, x_channels=128, dilation = 1):
         super(X, self).__init__()
 
         self.convs = nn.ModuleList([
-            nn.Conv2d(1, x_channels, kernel_size=9, padding=same_padding(9)),
-            nn.Conv2d(x_channels, x_channels, kernel_size=9, padding=same_padding(9, dilation), dilation=dilation),
-            nn.Conv2d(x_channels, x_channels, kernel_size=9, padding=same_padding(9, dilation), dilation=dilation),
-            nn.Conv2d(x_channels, 32, kernel_size=5, padding=same_padding(5))
+            nn.Conv2d(1, x_channels, kernel_size=9, padding=same_padding(9, dilation), dilation= dilation),
+            nn.Conv2d(x_channels, x_channels, kernel_size=9, padding=same_padding(9, dilation), dilation= dilation),
+            nn.Conv2d(x_channels, x_channels, kernel_size=9, padding=same_padding(9, dilation), dilation= dilation),
+            nn.Conv2d(x_channels, 32, kernel_size=5, padding=same_padding(5, dilation), dilation= dilation)
         ])
-
-        #self.max_pool = nn.MaxPool2d(3, 2, 1)
         self.relu = nn.ReLU()
 
     def forward(self, x):
         for i, conv in enumerate(self.convs):
             x = conv(x)
             x = self.relu(x)
-            #if i < len(self.convs) - 1:
-            #    x = self.max_pool(x)
 
         return x
 
 
 class Stage1(BaseModel):
-    def __init__(self, x_channels=128, stage_channels=512, num_classes=23, dilation=1):
+    def __init__(self, x_channels=128, stage_channels=512, num_classes=23, dilation = 1):
         super(Stage1, self).__init__()
-        self.X = X(x_channels, dilation)
+        self.X = X(x_channels)
         self.convs = nn.ModuleList([
-            nn.Conv2d(32, stage_channels, kernel_size=9, padding=same_padding(9)),
+            nn.Conv2d(32, stage_channels, kernel_size=9, padding=same_padding(9, dilation)),
             nn.Conv2d(stage_channels, stage_channels, kernel_size=1),
             nn.Conv2d(stage_channels, num_classes, kernel_size=1)
         ])
 
-        #self.max_pool = nn.MaxPool2d(3, 2, same_padding(3))
+        #self.max_pool = nn.MaxPool2d(3, 2, same_padding(3, dilation))
         self.relu = nn.ReLU()
 
     def forward(self, x):
@@ -57,18 +52,18 @@ class Stage1(BaseModel):
 
 
 class StageN(BaseModel):
-    def __init__(self, x_channels=128, num_classes=23, dilation=1):
+    def __init__(self, x_channels=128, num_classes=23, dilation = 1):
         super(StageN, self).__init__()
-        self.X = X(x_channels, dilation)
+        self.X = X(x_channels)
         self.convs = nn.ModuleList([
-            nn.Conv2d(32 + num_classes, x_channels, kernel_size=11, padding=same_padding(11)),
-            nn.Conv2d(x_channels, x_channels, kernel_size=11, padding=same_padding(11)),
-            nn.Conv2d(x_channels, x_channels, kernel_size=11, padding=same_padding(11)),
+            nn.Conv2d(32 + num_classes, x_channels, kernel_size=11, padding=same_padding(11, dilation)),
+            nn.Conv2d(x_channels, x_channels, kernel_size=11, padding=same_padding(11, dilation)),
+            nn.Conv2d(x_channels, x_channels, kernel_size=11, padding=same_padding(11, dilation)),
             nn.Conv2d(x_channels, x_channels, kernel_size=1),
             nn.Conv2d(x_channels, num_classes, kernel_size=1),
         ])
 
-        #self.max_pool = nn.MaxPool2d(3, 2, same_padding(3))
+        #self.max_pool = nn.MaxPool2d(3, 2, same_padding(3, dilation))
         self.relu = nn.ReLU()
 
     def forward(self, x, image):
@@ -88,10 +83,10 @@ class ConvolutionalPoseMachines(BaseModel):
     def __init__(self, x_channels=128, stage_channels=512, num_stages=3, num_classes=23, dilation=1):
         super(ConvolutionalPoseMachines, self).__init__()
 
-        self.stage_1 = Stage1(x_channels, stage_channels, num_classes, dilation)
+        self.stage_1 = Stage1(x_channels, stage_channels, num_classes)
         stages = []
         for _ in range(num_stages - 1):
-            stages.append(StageN(x_channels, num_classes, dilation))
+            stages.append(StageN(x_channels, num_classes))
 
         self.stages = nn.ModuleList(stages)
 
