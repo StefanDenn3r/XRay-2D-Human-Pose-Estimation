@@ -92,7 +92,7 @@ class Trainer(BaseTrainer):
                         arr.append(np.expand_dims(target[idx, channel_idx], axis=0)),
                         arr.append(np.expand_dims(output[idx, channel_idx], axis=0))
 
-                    self.writer.add_image('target_output_{sample_idx}', make_grid(torch.tensor(arr), range=(0, 1)))
+                    self.writer.add_image(f'target_output_{sample_idx}', make_grid(torch.tensor(arr), range=(0, 1)))
 
                     image_target = np.copy(image[0])
                     image_pred = np.copy(image[0])
@@ -110,7 +110,7 @@ class Trainer(BaseTrainer):
                             image_pred[(y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 1
                             # image_pred[y, x] = 1
 
-                    self.writer.add_image('target_predictions_{sample_idx}',
+                    self.writer.add_image(f'target_predictions_{sample_idx}',
                                           make_grid(torch.tensor([
                                               np.expand_dims(image_target * 255, axis=0),
                                               np.expand_dims(image_pred * 255, axis=0)
@@ -157,7 +157,7 @@ class Trainer(BaseTrainer):
                 self.writer.add_scalar('loss', loss.item())
                 total_val_loss += loss.item()
                 total_val_metrics += self._eval_metrics(output, target)
-                # self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
+                self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
 
         # add histogram of model parameters to the tensorboard
         for name, p in self.model.named_parameters():
