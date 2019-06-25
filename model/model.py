@@ -8,6 +8,23 @@ def same_padding(kernel_size, dilation=1):
     return (kernel_size + (kernel_size - 1) * (dilation - 1) - 1) // 2
 
 
+class DepthwiseSeparableConvolution(BaseModel):
+    def __init__(self, in_channels, out_channels, kernel_size, padding=0):
+        super(DepthwiseSeparableConvolution, self).__init__()
+        self.depthwise = nn.Conv2d(in_channels, in_channels, kernel_size)
+        self.pointwise = nn.Conv2d(in_channels, out_channels, kernel_size=1, padding=padding)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+
+        x = self.depthwise(x)
+        x = self.relu(x)
+
+        x = self.pointwise(x)
+        x = self.relu(x)
+
+        return x
+
 class X(BaseModel):
     def __init__(self, x_channels=128, dilation = 1):
         super(X, self).__init__()
@@ -31,10 +48,11 @@ class Stage1(BaseModel):
     def __init__(self, x_channels=128, stage_channels=512, num_classes=23):
         super(Stage1, self).__init__()
         self.X = X(x_channels)
+
         self.convs = nn.ModuleList([
-            nn.Conv2d(32, stage_channels, kernel_size=9, padding=same_padding(9)),
-            nn.Conv2d(stage_channels, stage_channels, kernel_size=1),
-            nn.Conv2d(stage_channels, num_classes, kernel_size=1)
+            DepthwiseSeparableConvolution(in_channels=32, out_channels=stage_channels, kernel_size=9, padding=same_padding(9)),
+            DepthwiseSeparableConvolution(in_channels=stage_channels, out_channels=stage_channels, kernel_size=1),
+            DepthwiseSeparableConvolution(in_channels=stage_channels, out_channels=num_classes, kernel_size=1),
         ])
 
 
@@ -54,12 +72,13 @@ class StageN(BaseModel):
     def __init__(self, x_channels=128, num_classes=23):
         super(StageN, self).__init__()
         self.X = X(x_channels)
+
         self.convs = nn.ModuleList([
-            nn.Conv2d(32 + num_classes, x_channels, kernel_size=11, padding=same_padding(11)),
-            nn.Conv2d(x_channels, x_channels, kernel_size=11, padding=same_padding(11)),
-            nn.Conv2d(x_channels, x_channels, kernel_size=11, padding=same_padding(11)),
-            nn.Conv2d(x_channels, x_channels, kernel_size=1),
-            nn.Conv2d(x_channels, num_classes, kernel_size=1),
+            DepthwiseSeparableConvolution(in_channels=32 + num_classes, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
+            DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
+            DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
+            DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=1),
+            DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=num_classes, kernel_size=1),
         ])
 
         self.relu = nn.ReLU()
