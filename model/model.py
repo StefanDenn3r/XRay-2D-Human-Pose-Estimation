@@ -12,12 +12,16 @@ class X(BaseModel):
     def __init__(self, x_channels=128, dilation = 1):
         super(X, self).__init__()
 
+
+        self.dilation = dilation
         self.convs = nn.ModuleList([
             nn.Conv2d(1, x_channels, kernel_size=9, padding=same_padding(9, dilation), dilation = dilation),
             nn.Conv2d(x_channels, x_channels, kernel_size=9, padding=same_padding(9, dilation), dilation = dilation),
             nn.Conv2d(x_channels, x_channels, kernel_size=9, padding=same_padding(9, dilation), dilation = dilation),
             nn.Conv2d(x_channels, 32, kernel_size=5, padding=same_padding(5, dilation), dilation = dilation)
         ])
+        self.max_pool = nn.MaxPool2d(3, 2, 1)
+
         self.relu = nn.ReLU()
 
     def forward(self, x):

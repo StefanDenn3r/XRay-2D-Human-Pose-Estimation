@@ -118,7 +118,7 @@ class Trainer(BaseTrainer):
 
                 # custom end
                 if epoch == 1:
-                    self.writer.add_image('input_{batch_idx}', make_grid(data.cpu(), nrow=8, normalize=True))
+                    self.writer.add_image(f'input_{batch_idx}', make_grid(data.cpu(), nrow=8, normalize=True))
 
         log = {
             'loss': total_loss / len(self.data_loader),

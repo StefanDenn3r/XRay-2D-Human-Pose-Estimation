@@ -8,7 +8,7 @@ CONFIG = {
             "stage_channels": 512,
             "num_stages": 5,
             "num_classes": 23,
-            "dilation": 2
+            "dilation": 4
 
         }
     },
