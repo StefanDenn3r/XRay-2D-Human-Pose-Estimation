@@ -7,7 +7,8 @@ CONFIG = {
             "x_channels": 128,
             "stage_channels": 512,
             "num_stages": 5,
-            "num_classes": 23
+            "num_classes": 23,
+            "depthwise_separable_convolution": True
         }
     },
     "data_loader": {
@@ -16,7 +17,7 @@ CONFIG = {
             "data_dir": "data/XRay/Patient_0",
             "batch_size": 1,
             "shuffle": False,
-            "validation_split": 0.0,
+            "validation_split": 0.4,
             "num_workers": 0
         }
     },
@@ -57,5 +58,5 @@ CONFIG = {
     'rescale_X_input': 256,
     'rescale_Y_input': 256,
     'rescale_X_target': 32,
-    'rescale_Y_target': 32
+    'rescale_Y_target': 32,
 }
