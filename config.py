@@ -16,7 +16,7 @@ CONFIG = {
             "data_dir": "data/XRay/Patient_0",
             "batch_size": 1,
             "shuffle": False,
-            "validation_split": 0.0,
+            "validation_split": 0.4,
             "num_workers": 0
         }
     },
@@ -57,5 +57,8 @@ CONFIG = {
     'rescale_X_input': 256,
     'rescale_Y_input': 256,
     'rescale_X_target': 32,
-    'rescale_Y_target': 32
+    'rescale_Y_target': 32,
+    'depthwise_separable_convolution': True
 }
+
+# 34103885
