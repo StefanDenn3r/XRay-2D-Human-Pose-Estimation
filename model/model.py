@@ -28,21 +28,22 @@ class DepthwiseSeparableConvolution(BaseModel):
 
 
 class X(BaseModel):
-    def __init__(self, x_channels=128, depthwise_separable_convolution=True):
+    def __init__(self, x_channels=128, depthwise_separable_convolution=True, dilation=1):
         super(X, self).__init__()
+        self.dilation = dilation
 
         if depthwise_separable_convolution:
             self.convs = nn.ModuleList([
                 DepthwiseSeparableConvolution(in_channels=1, out_channels=x_channels, kernel_size=9, padding=same_padding(9)),
                 DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=9, padding=same_padding(9)),
                 DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=9, padding=same_padding(9)),
-                DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=32, kernel_size=5, padding=same_padding(5)),
+                DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=32, kernel_size=5, padding=same_padding(5))
             ])
         else:
             self.convs = nn.ModuleList([
                 nn.Conv2d(in_channels=1, out_channels=x_channels, kernel_size=9, padding=same_padding(9)),
-                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=9, padding=same_padding(9)),
-                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=9, padding=same_padding(9)),
+                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=9, padding=same_padding(9, dilation) , dilation = dilation),
+                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=9, padding=same_padding(9, dilation), dilation = dilation),
                 nn.Conv2d(in_channels=x_channels, out_channels=32, kernel_size=5, padding=same_padding(5)),
             ])
 
@@ -58,9 +59,9 @@ class X(BaseModel):
         return x
 
 class Stage1(BaseModel):
-    def __init__(self, x_channels=128, stage_channels=512, num_classes=23, depthwise_separable_convolution=True):
+    def __init__(self, x_channels=128, stage_channels=512, num_classes=23, depthwise_separable_convolution=True, dilation = 1):
         super(Stage1, self).__init__()
-        self.X = X(x_channels, depthwise_separable_convolution)
+        self.X = X(x_channels, depthwise_separable_convolution, dilation)
 
         if depthwise_separable_convolution:
             first_conv = DepthwiseSeparableConvolution(in_channels=32, out_channels=stage_channels, kernel_size=9, padding=same_padding(9))
@@ -87,9 +88,9 @@ class Stage1(BaseModel):
 
 
 class StageN(BaseModel):
-    def __init__(self, x_channels=128, num_classes=23, depthwise_separable_convolution=True):
+    def __init__(self, x_channels=128, num_classes=23, depthwise_separable_convolution=True, dilation = 1):
         super(StageN, self).__init__()
-        self.X = X(x_channels, depthwise_separable_convolution)
+        self.X = X(x_channels, depthwise_separable_convolution, dilation)
 
         if depthwise_separable_convolution:
             first_convs = [
@@ -126,13 +127,13 @@ class StageN(BaseModel):
 
 class ConvolutionalPoseMachines(BaseModel):
 
-    def __init__(self, x_channels=128, stage_channels=512, num_stages=3, num_classes=23, depthwise_separable_convolution=True):
+    def __init__(self, x_channels=128, stage_channels=512, num_stages=3, num_classes=23, depthwise_separable_convolution=True, dilation = 1):
         super(ConvolutionalPoseMachines, self).__init__()
 
-        self.stage_1 = Stage1(x_channels, stage_channels, num_classes, depthwise_separable_convolution)
+        self.stage_1 = Stage1(x_channels, stage_channels, num_classes, depthwise_separable_convolution, dilation)
         stages = []
         for _ in range(num_stages - 1):
-            stages.append(StageN(x_channels, num_classes, depthwise_separable_convolution))
+            stages.append(StageN(x_channels, num_classes, depthwise_separable_convolution, dilation))
 
         self.stages = nn.ModuleList(stages)
 
