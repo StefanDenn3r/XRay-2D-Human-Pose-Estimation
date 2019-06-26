@@ -5,4 +5,4 @@ data/XRay/Everything/Test/*
 data/XRay/Everything/Training/*
 data/XRay/Everything/Validation/*
 saved/
-
+__pycache__

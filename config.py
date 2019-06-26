@@ -6,9 +6,9 @@ CONFIG = {
         "args": {
             "x_channels": 128,
             "stage_channels": 512,
-            "num_stages": 5,
+            "num_stages": 1,
             "num_classes": 23,
-            "depthwise_separable_convolution": True,
+            "depthwise_separable_convolution": False,
             "dilation": 4
 
         }
@@ -59,6 +59,6 @@ CONFIG = {
     'prediction_blur': 1,
     'rescale_X_input': 256,
     'rescale_Y_input': 256,
-    'rescale_X_target': 256,
-    'rescale_Y_target': 256
+    'rescale_X_target': 32,
+    'rescale_Y_target': 32
 }

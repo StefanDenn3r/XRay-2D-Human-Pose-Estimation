@@ -1,6 +1,10 @@
-import torch
 from abc import abstractmethod
+
+import torch
 from numpy import inf
+from torchsummary import summary
+
+from config import CONFIG
 from logger import WriterTensorboardX
 
 
@@ -8,6 +12,7 @@ class BaseTrainer:
     """
     Base class for all trainers
     """
+
     def __init__(self, model, loss, metrics, optimizer, config):
         self.config = config
         self.logger = config.get_logger('trainer', config['trainer']['verbosity'])
@@ -17,6 +22,8 @@ class BaseTrainer:
         self.model = model.to(self.device)
         if len(device_ids) > 1:
             self.model = torch.nn.DataParallel(model, device_ids=device_ids)
+
+        summary(self.model, (1, CONFIG['rescale_X_input'], CONFIG['rescale_Y_input']), CONFIG['data_loader']['args']['batch_size'])
 
         self.loss = loss
         self.metrics = metrics

@@ -15,12 +15,18 @@ class XRayDataLoader(BaseDataLoader):
     """
 
     def __init__(self, data_dir, batch_size, shuffle=True, validation_split=0.0, num_workers=1, training=True):
+        input_rescale = (CONFIG['rescale_X_input'], CONFIG['rescale_Y_input'])
+        if CONFIG['arch']['args']['dilation'] == 1:
+            target_rescale = (CONFIG['rescale_X_target'], CONFIG['rescale_Y_target'])
+        else:
+            target_rescale = input_rescale
+
         trsfm = transforms.Compose([
             Gaussfilter(CONFIG['sigma']),
             Normalize(),
             Resize(
-                rescale_input=(CONFIG['rescale_X_input'], CONFIG['rescale_Y_input']),
-                rescale_target=(CONFIG['rescale_X_target'], CONFIG['rescale_Y_target'])
+                rescale_input=input_rescale,
+                rescale_target=target_rescale
             ),
             ToTensor()
         ])
