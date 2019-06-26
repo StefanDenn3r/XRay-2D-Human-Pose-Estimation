@@ -8,7 +8,9 @@ CONFIG = {
             "stage_channels": 512,
             "num_stages": 5,
             "num_classes": 23,
-            "depthwise_separable_convolution": True
+            "depthwise_separable_convolution": True,
+            "dilation": 4
+
         }
     },
     "data_loader": {
@@ -17,7 +19,7 @@ CONFIG = {
             "data_dir": "data/XRay/Patient_0",
             "batch_size": 1,
             "shuffle": False,
-            "validation_split": 0.4,
+            "validation_split": 0.1,
             "num_workers": 0
         }
     },
@@ -43,7 +45,7 @@ CONFIG = {
         }
     },
     "trainer": {
-        "epochs": 200,
+        "epochs": 1,
         "save_dir": "saved/",
         "save_period": 1,
         "verbosity": 2,
@@ -57,6 +59,6 @@ CONFIG = {
     'prediction_blur': 1,
     'rescale_X_input': 256,
     'rescale_Y_input': 256,
-    'rescale_X_target': 32,
-    'rescale_Y_target': 32,
+    'rescale_X_target': 256,
+    'rescale_Y_target': 256
 }
