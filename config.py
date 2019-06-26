@@ -45,7 +45,7 @@ CONFIG = {
         }
     },
     "trainer": {
-        "epochs": 5,
+        "epochs": 1,
         "save_dir": "saved/",
         "save_period": 1,
         "verbosity": 2,

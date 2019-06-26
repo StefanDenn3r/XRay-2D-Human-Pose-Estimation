@@ -55,6 +55,10 @@ class X(BaseModel):
         for i, conv in enumerate(self.convs):
             x = conv(x)
             x = self.relu(x)
+            if self.dilation == 1:
+                if i < len(self.convs) - 1:
+                    x = self.max_pool(x)
+
 
         return x
 
