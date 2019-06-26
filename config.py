@@ -7,7 +7,8 @@ CONFIG = {
             "x_channels": 128,
             "stage_channels": 512,
             "num_stages": 5,
-            "num_classes": 23
+            "num_classes": 23,
+            "depthwise_separable_convolution": False
         }
     },
     "data_loader": {
@@ -58,7 +59,4 @@ CONFIG = {
     'rescale_Y_input': 256,
     'rescale_X_target': 32,
     'rescale_Y_target': 32,
-    'depthwise_separable_convolution': True
 }
-
-# 34103885

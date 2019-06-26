@@ -27,9 +27,9 @@ class DepthwiseSeparableConvolution(BaseModel):
         return x
 
 class X(BaseModel):
-    def __init__(self, x_channels=128):
+    def __init__(self, x_channels=128, depthwise_separable_convolution=True):
         super(X, self).__init__()
-        if CONFIG['depthwise_separable_convolution']:
+        if depthwise_separable_convolution:
             self.convs = nn.ModuleList([
                 DepthwiseSeparableConvolution(in_channels=1, out_channels=x_channels, kernel_size=9, padding=same_padding(9)),
                 DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=9, padding=same_padding(9)),
@@ -58,11 +58,11 @@ class X(BaseModel):
 
 
 class Stage1(BaseModel):
-    def __init__(self, x_channels=128, stage_channels=512, num_classes=23):
+    def __init__(self, x_channels=128, stage_channels=512, num_classes=23, depthwise_separable_convolution=True):
         super(Stage1, self).__init__()
-        self.X = X(x_channels)
+        self.X = X(x_channels, depthwise_separable_convolution)
 
-        if CONFIG['depthwise_separable_convolution']:
+        if depthwise_separable_convolution:
             self.convs = nn.ModuleList([
                 DepthwiseSeparableConvolution(in_channels=32, out_channels=stage_channels, kernel_size=9, padding=same_padding(9)),
                 DepthwiseSeparableConvolution(in_channels=stage_channels, out_channels=stage_channels, kernel_size=1),
@@ -89,11 +89,11 @@ class Stage1(BaseModel):
 
 
 class StageN(BaseModel):
-    def __init__(self, x_channels=128, num_classes=23):
+    def __init__(self, x_channels=128, num_classes=23, depthwise_separable_convolution=True):
         super(StageN, self).__init__()
-        self.X = X(x_channels)
+        self.X = X(x_channels, depthwise_separable_convolution)
 
-        if CONFIG['depthwise_separable_convolution']:
+        if depthwise_separable_convolution:
             self.convs = nn.ModuleList([
                 DepthwiseSeparableConvolution(in_channels=32 + num_classes, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
                 DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
@@ -127,13 +127,13 @@ class StageN(BaseModel):
 
 class ConvolutionalPoseMachines(BaseModel):
 
-    def __init__(self, x_channels=128, stage_channels=512, num_stages=3, num_classes=23):
+    def __init__(self, x_channels=128, stage_channels=512, num_stages=3, num_classes=23, depthwise_separable_convolution=True):
         super(ConvolutionalPoseMachines, self).__init__()
 
-        self.stage_1 = Stage1(x_channels, stage_channels, num_classes)
+        self.stage_1 = Stage1(x_channels, stage_channels, num_classes, depthwise_separable_convolution)
         stages = []
         for _ in range(num_stages - 1):
-            stages.append(StageN(x_channels, num_classes))
+            stages.append(StageN(x_channels, num_classes, depthwise_separable_convolution))
 
         self.stages = nn.ModuleList(stages)
 
