@@ -2,6 +2,13 @@ import numpy as np
 import torch
 from torchvision.utils import make_grid
 
+from torchvision import transforms
+
+from custom_transforms.Gaussfilter import Gaussfilter
+from custom_transforms.Normalize import Normalize
+from custom_transforms.Resize import Resize
+from custom_transforms.ToTensor import ToTensor
+
 from base import BaseTrainer
 from config import CONFIG
 
@@ -51,11 +58,41 @@ class Trainer(BaseTrainer):
 
         total_loss = 0
         total_metrics = np.zeros(len(self.metrics))
+
+        cfg_trainer = CONFIG['trainer']
+        num_epochs = cfg_trainer['epochs']
+        if(num_epochs>1):
+            factor = (CONFIG['sigma']-1)*(epoch-1)/(num_epochs-1)+1 #we want to map everything to 1 ... sigma
+        else:
+            factor = 1
+        input_rescale = (CONFIG['rescale_X_input'], CONFIG['rescale_Y_input'])
+        if CONFIG['arch']['args']['dilation'] == 1:
+            target_rescale = (CONFIG['rescale_X_target'], CONFIG['rescale_Y_target'])
+        else:
+            target_rescale = input_rescale
+        transform = transforms.Compose([
+            Gaussfilter(CONFIG['sigma']/factor),
+            Normalize(),
+            Resize(
+                rescale_input=input_rescale,
+                rescale_target=target_rescale
+            ),
+            ToTensor()
+        ])
+
         for batch_idx, (data, target) in enumerate(self.data_loader):
+            # Adapt target each epoch by convolving with gaussian that is getting smaller
+            sample = (data[0].numpy(),target[0].numpy())
+            data, target = transform(sample)
+
+            data = data[None,:,:]
+            target = target[None,:,:]
+
             data, target = data.to(self.device), target.to(self.device)
 
             self.optimizer.zero_grad()
             output = self.model(data)
+            
             loss = self.loss(output, target)
             loss.backward()
             self.optimizer.step()
@@ -146,8 +183,37 @@ class Trainer(BaseTrainer):
         self.model.eval()
         total_val_loss = 0
         total_val_metrics = np.zeros(len(self.metrics))
+
+        cfg_trainer = CONFIG['trainer']
+        num_epochs = cfg_trainer['epochs']
+        if(num_epochs>1):
+            factor = (CONFIG['sigma']-1)*(epoch-1)/(num_epochs-1)+1 #we want to map everything to 1 ... sigma
+        else:
+            factor = 1
+        input_rescale = (CONFIG['rescale_X_input'], CONFIG['rescale_Y_input'])
+        if CONFIG['arch']['args']['dilation'] == 1:
+            target_rescale = (CONFIG['rescale_X_target'], CONFIG['rescale_Y_target'])
+        else:
+            target_rescale = input_rescale
+        transform = transforms.Compose([
+            Gaussfilter(CONFIG['sigma']/factor),
+            Normalize(),
+            Resize(
+                rescale_input=input_rescale,
+                rescale_target=target_rescale
+            ),
+            ToTensor()
+        ])
+
         with torch.no_grad():
             for batch_idx, (data, target) in enumerate(self.valid_data_loader):
+
+                sample = (data[0].numpy(),target[0].numpy())
+                data, target = transform(sample)
+
+                data = data[None,:,:]
+                target = target[None,:,:]
+
                 data, target = data.to(self.device), target.to(self.device)
 
                 output = self.model(data)
