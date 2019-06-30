@@ -56,7 +56,7 @@ CONFIG = {
     },
     'fraction_of_dataset': 0.1,
     'sigma': 80,
-    'threshold': 0.01,
+    'threshold': 0.4,
     'prediction_blur': 1,
     'rescale_X_input': 256,
     'rescale_Y_input': 256,
