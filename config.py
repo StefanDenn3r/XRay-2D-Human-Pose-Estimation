@@ -4,8 +4,8 @@ CONFIG = {
     "arch": {
         "type": "ConvolutionalPoseMachines",
         "args": {
-            "x_channels": 128,
-            "stage_channels": 512,
+            "x_channels": 5,
+            "stage_channels": 5,
             "num_stages": 1,
             "num_classes": 23,
             "depthwise_separable_convolution": False,
@@ -19,7 +19,8 @@ CONFIG = {
             "data_dir": "data/XRay/Patient_0",
             "batch_size": 1,
             "shuffle": False,
-            "validation_split": 0.1,
+            "validation_split": 0.2,
+
             "num_workers": 0
         }
     },
@@ -55,7 +56,7 @@ CONFIG = {
     },
     'fraction_of_dataset': 0.1,
     'sigma': 80,
-    'threshold': 0.01,
+    'threshold': 0.4,
     'prediction_blur': 1,
     'rescale_X_input': 256,
     'rescale_Y_input': 256,
