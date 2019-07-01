@@ -32,5 +32,5 @@ class XRayDataLoader(BaseDataLoader):
         ])
 
         self.data_dir = data_dir
-        self.dataset = XRayDataset(self.data_dir, training, transform=None)
+        self.dataset = XRayDataset(self.data_dir, training, transform=True)
         super(XRayDataLoader, self).__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)

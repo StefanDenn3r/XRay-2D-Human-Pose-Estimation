@@ -7,6 +7,13 @@ from torch.utils.data import Dataset
 from config import CONFIG
 import utils
 
+from torchvision import transforms
+from config import CONFIG
+from custom_transforms.Gaussfilter import Gaussfilter
+from custom_transforms.Normalize import Normalize
+from custom_transforms.Resize import Resize
+from custom_transforms.ToTensor import ToTensor
+
 
 
 class XRayDataset(Dataset):
@@ -20,7 +27,8 @@ class XRayDataset(Dataset):
         """
         self.root_dir = root_dir
         self.data_dir_paths = []
-
+        self.items_called = 0
+        self.sigma = CONFIG['sigma']
         if training:
             self.data_dir_paths += utils.retrieve_sub_folder_paths(os.path.join(self.root_dir, "Training"))
             self.data_dir_paths += utils.retrieve_sub_folder_paths(os.path.join(self.root_dir, "Validation"))
@@ -45,6 +53,8 @@ class XRayDataset(Dataset):
         return len(self.data_dir_paths)
 
     def __getitem__(self, idx):
+        
+        self.items_called += 1
         item_dir = self.data_dir_paths[idx]
 
         im = Image.open(glob.glob(os.path.join(item_dir, "*.png"))[0])
@@ -72,6 +82,27 @@ class XRayDataset(Dataset):
         sample = (image, target)
 
         if self.transform:
-            sample = self.transform(sample)
+            trans = self.get_transform()
+            sample = trans(sample)
 
         return sample
+    
+    def set_sigma(self):
+        self.sigma = self.sigma * 0.995
+        
+    def get_transform(self):
+        input_rescale = (CONFIG['rescale_X_input'], CONFIG['rescale_Y_input'])
+        if CONFIG['arch']['args']['dilation'] == 1:
+            target_rescale = (CONFIG['rescale_X_target'], CONFIG['rescale_Y_target'])
+        else:
+            target_rescale = input_rescale
+        transform = transforms.Compose([
+            Gaussfilter(self.sigma),
+            Normalize(),
+            Resize(
+                rescale_input=input_rescale,
+                rescale_target=target_rescale
+            ),
+            ToTensor()
+        ])
+        return transform

@@ -13,6 +13,9 @@ from base import BaseTrainer
 from config import CONFIG
 
 
+import cv2
+
+
 class Trainer(BaseTrainer):
     """
     Trainer class
@@ -55,44 +58,15 @@ class Trainer(BaseTrainer):
             The metrics in log must have the key 'metrics'.
         """
         self.model.train()
-
+        self.data_loader.dataset.set_sigma()
+        print(self.data_loader.dataset.sigma)
         total_loss = 0
         total_metrics = np.zeros(len(self.metrics))
-
-        cfg_trainer = CONFIG['trainer']
-        num_epochs = cfg_trainer['epochs']
-        if(num_epochs>1):
-            factor = (CONFIG['sigma']-1)*(epoch-1)/(num_epochs-1)+1 #we want to map everything to 1 ... sigma
-        else:
-            factor = 1
-        input_rescale = (CONFIG['rescale_X_input'], CONFIG['rescale_Y_input'])
-        if CONFIG['arch']['args']['dilation'] == 1:
-            target_rescale = (CONFIG['rescale_X_target'], CONFIG['rescale_Y_target'])
-        else:
-            target_rescale = input_rescale
-        transform = transforms.Compose([
-            Gaussfilter(CONFIG['sigma']/factor),
-            Normalize(),
-            Resize(
-                rescale_input=input_rescale,
-                rescale_target=target_rescale
-            ),
-            ToTensor()
-        ])
-
         for batch_idx, (data, target) in enumerate(self.data_loader):
-            # Adapt target each epoch by convolving with gaussian that is getting smaller
-            sample = (data[0].numpy(),target[0].numpy())
-            data, target = transform(sample)
-
-            data = data[None,:,:]
-            target = target[None,:,:]
-
             data, target = data.to(self.device), target.to(self.device)
 
             self.optimizer.zero_grad()
             output = self.model(data)
-            
             loss = self.loss(output, target)
             loss.backward()
             self.optimizer.step()
@@ -122,35 +96,57 @@ class Trainer(BaseTrainer):
 
                 pred_landmarks = [[np.unravel_index(np.argmax(i_output[idx], axis=None), i_output[idx].shape)
                                    for idx in range(i_output.shape[0])] for i_output in output]
+                radius = 5
 
                 for idx, image in enumerate(data.cpu().detach().numpy()):
                     arr = []
-                    for channel_idx in range(target[idx].shape[0]):
-                        arr.append(np.expand_dims(target[idx, channel_idx], axis=0)),
-                        arr.append(np.expand_dims(output[idx, channel_idx], axis=0))
+                    for channel_idx, ((target_y, target_x), (pred_y, pred_x)) in enumerate(
+                            zip(target_landmarks[idx], pred_landmarks[idx])):
+                        temp_target = np.expand_dims(target[idx, channel_idx], axis=0)
+                        curr_target = np.concatenate((np.copy(temp_target), np.copy(temp_target), np.copy(temp_target)))
+                        if np.sum(target[idx, channel_idx]) > 0:
+                            curr_target[0, (target_y - radius):(target_y + radius + 1),
+                            (target_x - radius):(target_x + radius + 1)] = 1
+                            curr_target[1, (target_y - radius):(target_y + radius + 1),
+                            (target_x - radius):(target_x + radius + 1)] = 0
+                            curr_target[2, (target_y - radius):(target_y + radius + 1),
+                            (target_x - radius):(target_x + radius + 1)] = 0
 
-                    self.writer.add_image(f'target_output_{sample_idx}', make_grid(torch.tensor(arr), range=(0, 1)))
+                        temp_output = np.expand_dims(
+                            cv2.normalize(output[idx, channel_idx], None, 0, 1, cv2.NORM_MINMAX, cv2.CV_32F), axis=0)
+                        curr_output = np.concatenate((np.copy(temp_output), np.copy(temp_output), np.copy(temp_output)))
+                        if temp_output[0, pred_y, pred_x] > CONFIG['threshold']:
+                            curr_output[0, (pred_y - radius):(pred_y + radius + 1),
+                            (pred_x - radius):(pred_x + radius + 1)] = 1
+                            curr_output[1, (pred_y - radius):(pred_y + radius + 1),
+                            (pred_x - radius):(pred_x + radius + 1)] = 0
+                            curr_output[2, (pred_y - radius):(pred_y + radius + 1),
+                            (pred_x - radius):(pred_x + radius + 1)] = 0
 
-                    image_target = np.copy(image[0])
-                    image_pred = np.copy(image[0])
-                    radius = 5
-                    stride = image_target.shape[-1] // output.shape[-1]
+                        arr.append(curr_target),
+                        arr.append(curr_output),
+
+                    self.writer.add_image(f'target_output_{sample_idx}', make_grid(torch.tensor(arr)))
+
+                    image_target = np.concatenate((np.copy(image), np.copy(image), np.copy(image)))
+                    image_pred = np.copy(image_target)
+
                     for channel_idx, (y, x) in enumerate(target_landmarks[idx]):
                         if np.sum(target[idx, channel_idx]) > 0:
-                            y, x = y * stride, x * stride
-                            image_target[(y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 1
-                            # image_target[y, x] = 1
+                            image_target[0, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 1
+                            image_target[1, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 0
+                            image_target[2, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 0
 
                     for channel_idx, (y, x) in enumerate(pred_landmarks[idx]):
                         if output[idx, channel_idx, y, x] > CONFIG['threshold']:
-                            y, x = y * stride, x * stride
-                            image_pred[(y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 1
-                            # image_pred[y, x] = 1
+                            image_pred[0, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 1
+                            image_pred[1, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 0
+                            image_pred[2, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 0
 
                     self.writer.add_image(f'target_predictions_{sample_idx}',
                                           make_grid(torch.tensor([
-                                              np.expand_dims(image_target * 255, axis=0),
-                                              np.expand_dims(image_pred * 255, axis=0)
+                                              image_target * 255,
+                                              image_pred * 255,
                                           ]), nrow=2, normalize=True))
 
                 # custom end
@@ -183,37 +179,8 @@ class Trainer(BaseTrainer):
         self.model.eval()
         total_val_loss = 0
         total_val_metrics = np.zeros(len(self.metrics))
-
-        cfg_trainer = CONFIG['trainer']
-        num_epochs = cfg_trainer['epochs']
-        if(num_epochs>1):
-            factor = (CONFIG['sigma']-1)*(epoch-1)/(num_epochs-1)+1 #we want to map everything to 1 ... sigma
-        else:
-            factor = 1
-        input_rescale = (CONFIG['rescale_X_input'], CONFIG['rescale_Y_input'])
-        if CONFIG['arch']['args']['dilation'] == 1:
-            target_rescale = (CONFIG['rescale_X_target'], CONFIG['rescale_Y_target'])
-        else:
-            target_rescale = input_rescale
-        transform = transforms.Compose([
-            Gaussfilter(CONFIG['sigma']/factor),
-            Normalize(),
-            Resize(
-                rescale_input=input_rescale,
-                rescale_target=target_rescale
-            ),
-            ToTensor()
-        ])
-
         with torch.no_grad():
             for batch_idx, (data, target) in enumerate(self.valid_data_loader):
-
-                sample = (data[0].numpy(),target[0].numpy())
-                data, target = transform(sample)
-
-                data = data[None,:,:]
-                target = target[None,:,:]
-
                 data, target = data.to(self.device), target.to(self.device)
 
                 output = self.model(data)
