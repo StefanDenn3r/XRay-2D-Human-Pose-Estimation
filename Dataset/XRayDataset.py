@@ -1,19 +1,17 @@
 import glob
 import os
+
 import PIL.Image as Image
-import cv2
 import numpy as np
 from torch.utils.data import Dataset
-from config import CONFIG
-import utils
-
 from torchvision import transforms
+
+import utils
 from config import CONFIG
 from custom_transforms.Gaussfilter import Gaussfilter
 from custom_transforms.Normalize import Normalize
 from custom_transforms.Resize import Resize
 from custom_transforms.ToTensor import ToTensor
-
 
 
 class XRayDataset(Dataset):
@@ -53,7 +51,7 @@ class XRayDataset(Dataset):
         return len(self.data_dir_paths)
 
     def __getitem__(self, idx):
-        
+
         self.items_called += 1
         item_dir = self.data_dir_paths[idx]
 
@@ -64,7 +62,7 @@ class XRayDataset(Dataset):
         minI = np.min(im)
         im = (im - minI) / (maxI - minI)
         image = np.asarray(im)
-       # image = Image.open(glob.glob(os.path.join(item_dir, "*.png"))[0], 0)
+        # image = Image.open(glob.glob(os.path.join(item_dir, "*.png"))[0], 0)
 
         (height, width) = image.shape
 
@@ -86,10 +84,10 @@ class XRayDataset(Dataset):
             sample = trans(sample)
 
         return sample
-    
+
     def set_sigma(self):
         self.sigma = self.sigma * 0.995
-        
+
     def get_transform(self):
         input_rescale = (CONFIG['rescale_X_input'], CONFIG['rescale_Y_input'])
         if CONFIG['arch']['args']['dilation'] == 1:

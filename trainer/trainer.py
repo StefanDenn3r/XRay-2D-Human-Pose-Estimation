@@ -7,9 +7,6 @@ from base import BaseTrainer
 from config import CONFIG
 
 
-import cv2
-
-
 class Trainer(BaseTrainer):
     """
     Trainer class
@@ -53,7 +50,7 @@ class Trainer(BaseTrainer):
         """
         self.model.train()
         self.data_loader.dataset.set_sigma()
-        print(self.data_loader.dataset.sigma)
+        print(f'Current sigma: {self.data_loader.dataset.sigma}')
         total_loss = 0
         total_metrics = np.zeros(len(self.metrics))
         for batch_idx, (data, target) in enumerate(self.data_loader):
