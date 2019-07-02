@@ -57,7 +57,6 @@ class XRayDataset(Dataset):
 
         self.items_called += 1
         item_dir = self.data_dir_paths[idx]
-        print(item_dir)
         im = Image.open(glob.glob(os.path.join(item_dir, "*.png"))[0])
         im = np.asarray(im)
         im = np.float32(im)
@@ -68,7 +67,6 @@ class XRayDataset(Dataset):
         # image = Image.open(glob.glob(os.path.join(item_dir, "*.png"))[0], 0)
 
         (height, width) = image.shape
-        print(item_dir)
         item_landmarks = np.array(
             [np.array([int(i) for i in line.rstrip('\n').split(";")])
              for line in open(glob.glob(os.path.join(item_dir, "*.txt"))[0])]
