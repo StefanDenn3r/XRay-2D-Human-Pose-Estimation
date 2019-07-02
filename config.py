@@ -24,6 +24,7 @@ CONFIG = {
             "custom_args": {
                 'isTraining': True,
                 'sigma': 80,
+                'sigma_reduction_factor': 0.995,
                 'rescale_X_input': 256,
                 'rescale_Y_input': 256,
                 'fraction_of_dataset': 0.1,
@@ -52,7 +53,7 @@ CONFIG = {
         }
     },
     "trainer": {
-        "epochs": 20,
+        "epochs": 3,
         "save_dir": "saved/",
         "save_period": 1,
         "verbosity": 2,
