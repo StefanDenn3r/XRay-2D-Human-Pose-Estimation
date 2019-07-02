@@ -80,8 +80,7 @@ class XRayDataset(Dataset):
         sample = (image, target)
 
         if self.transform:
-            trans = self.get_transform()
-            sample = trans(sample)
+            sample = self.get_transform()(sample)
 
         return sample
 

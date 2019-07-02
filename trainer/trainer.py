@@ -5,6 +5,7 @@ from torchvision.utils import make_grid
 
 from base import BaseTrainer
 from config import CONFIG
+from utils import illustration_utils
 
 
 class Trainer(BaseTrainer):
@@ -58,6 +59,7 @@ class Trainer(BaseTrainer):
 
             self.optimizer.zero_grad()
             output = self.model(data)
+            print(f'data: {data.shape}, output: {output.shape}, target: {target.shape}')
             loss = self.loss(output, target)
             loss.backward()
             self.optimizer.step()
@@ -87,32 +89,22 @@ class Trainer(BaseTrainer):
 
                 pred_landmarks = [[np.unravel_index(np.argmax(i_output[idx], axis=None), i_output[idx].shape)
                                    for idx in range(i_output.shape[0])] for i_output in output]
-                radius = 5
+
+                target_radius = max(1, int(target.shape[-1]*0.02))
 
                 for idx, image in enumerate(data.cpu().detach().numpy()):
                     arr = []
-                    for channel_idx, ((target_y, target_x), (pred_y, pred_x)) in enumerate(
-                            zip(target_landmarks[idx], pred_landmarks[idx])):
+                    for channel_idx, ((target_y, target_x), (pred_y, pred_x)) in enumerate(zip(target_landmarks[idx], pred_landmarks[idx])):
                         temp_target = np.expand_dims(target[idx, channel_idx], axis=0)
                         curr_target = np.concatenate((np.copy(temp_target), np.copy(temp_target), np.copy(temp_target)))
                         if np.sum(target[idx, channel_idx]) > 0:
-                            curr_target[0, (target_y - radius):(target_y + radius + 1),
-                            (target_x - radius):(target_x + radius + 1)] = 1
-                            curr_target[1, (target_y - radius):(target_y + radius + 1),
-                            (target_x - radius):(target_x + radius + 1)] = 0
-                            curr_target[2, (target_y - radius):(target_y + radius + 1),
-                            (target_x - radius):(target_x + radius + 1)] = 0
+                            illustration_utils.draw_red_landmark(curr_target, target_x, target_y, target_radius)
 
-                        temp_output = np.expand_dims(
-                            cv2.normalize(output[idx, channel_idx], None, 0, 1, cv2.NORM_MINMAX, cv2.CV_32F), axis=0)
+                        temp_output = np.expand_dims(cv2.normalize(output[idx, channel_idx], None, 0, 1, cv2.NORM_MINMAX, cv2.CV_32F), axis=0)
                         curr_output = np.concatenate((np.copy(temp_output), np.copy(temp_output), np.copy(temp_output)))
+
                         if temp_output[0, pred_y, pred_x] > CONFIG['threshold']:
-                            curr_output[0, (pred_y - radius):(pred_y + radius + 1),
-                            (pred_x - radius):(pred_x + radius + 1)] = 1
-                            curr_output[1, (pred_y - radius):(pred_y + radius + 1),
-                            (pred_x - radius):(pred_x + radius + 1)] = 0
-                            curr_output[2, (pred_y - radius):(pred_y + radius + 1),
-                            (pred_x - radius):(pred_x + radius + 1)] = 0
+                            illustration_utils.draw_red_landmark(curr_output, pred_x, pred_y, target_radius)
 
                         arr.append(curr_target),
                         arr.append(curr_output),
@@ -122,17 +114,19 @@ class Trainer(BaseTrainer):
                     image_target = np.concatenate((np.copy(image), np.copy(image), np.copy(image)))
                     image_pred = np.copy(image_target)
 
+                    image_radius = max(1, int(data.shape[-1]*0.02))
+
                     for channel_idx, (y, x) in enumerate(target_landmarks[idx]):
                         if np.sum(target[idx, channel_idx]) > 0:
-                            image_target[0, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 1
-                            image_target[1, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 0
-                            image_target[2, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 0
+                            x *= (data.shape[-1] // target.shape[-1])
+                            y *= (data.shape[-1] // target.shape[-1])
+                            illustration_utils.draw_red_landmark(image_target, x, y, image_radius)
 
                     for channel_idx, (y, x) in enumerate(pred_landmarks[idx]):
                         if output[idx, channel_idx, y, x] > CONFIG['threshold']:
-                            image_pred[0, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 1
-                            image_pred[1, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 0
-                            image_pred[2, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 0
+                            x *= (data.shape[-1] // target.shape[-1])
+                            y *= (data.shape[-1] // target.shape[-1])
+                            illustration_utils.draw_red_landmark(image_pred, x, y, image_radius)
 
                     self.writer.add_image(f'target_predictions_{sample_idx}',
                                           make_grid(torch.tensor([

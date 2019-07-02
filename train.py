@@ -1,6 +1,8 @@
 import argparse
 import collections
+
 import torch
+
 import data_loader.data_loaders as module_data
 import model.loss as module_loss
 import model.metric as module_metric
@@ -41,11 +43,11 @@ def main(config):
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='PyTorch Template')
     args.add_argument('-c', '--config', default=None, type=str,
-                        help='config file path (default: None)')
+                      help='config file path (default: None)')
     args.add_argument('-r', '--resume', default=None, type=str,
-                        help='path to latest checkpoint (default: None)')
+                      help='path to latest checkpoint (default: None)')
     args.add_argument('-d', '--device', default=None, type=str,
-                        help='indices of GPUs to enable (default: all)')
+                      help='indices of GPUs to enable (default: all)')
 
     # custom cli options to modify configuration from default values given in json file.
     CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')

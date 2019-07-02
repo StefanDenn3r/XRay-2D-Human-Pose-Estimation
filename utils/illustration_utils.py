@@ -10,3 +10,9 @@ def draw_terrain(output):
     heights = output
     ax.plot_surface(X, Y, heights, cmap=plt.get_cmap('jet'))
     plt.show()
+
+
+def draw_red_landmark(array, x, y, radius):
+    array[0, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 1
+    array[1, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 0
+    array[2, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 0
