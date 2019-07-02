@@ -4,7 +4,6 @@ import torch
 from numpy import inf
 from torchsummary import summary
 
-from config import CONFIG
 from logger import WriterTensorboardX
 
 
@@ -23,7 +22,12 @@ class BaseTrainer:
         if len(device_ids) > 1:
             self.model = torch.nn.DataParallel(model, device_ids=device_ids)
 
-        summary(self.model, (1, CONFIG['rescale_X_input'], CONFIG['rescale_Y_input']), CONFIG['data_loader']['args']['batch_size'])
+        # summary(self.model, (
+        #     1,
+        #     self.config['data_loader']['args']['custom_args']['rescale_X_input'],
+        #     self.config['data_loader']['args']['custom_args']['rescale_Y_input'],
+        #     self.config['data_loader']['args']['batch_size']
+        # ))
 
         self.loss = loss
         self.metrics = metrics

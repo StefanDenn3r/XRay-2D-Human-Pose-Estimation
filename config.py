@@ -8,7 +8,7 @@ CONFIG = {
             "stage_channels": 5,
             "num_stages": 1,
             "num_classes": 23,
-            "depthwise_separable_convolution": False,
+            "depthwise_separable_convolution": True,
             "dilation": 4
 
         }
@@ -20,8 +20,14 @@ CONFIG = {
             "batch_size": 1,
             "shuffle": False,
             "validation_split": 0.2,
-
-            "num_workers": 0
+            "num_workers": 0,
+            "custom_args": {
+                'isTraining': True,
+                'sigma': 80,
+                'rescale_X_input': 256,
+                'rescale_Y_input': 256,
+                'fraction_of_dataset': 0.1,
+            }
         }
     },
     "optimizer": {
@@ -54,12 +60,6 @@ CONFIG = {
         "early_stop": 20,
         "tensorboardX": True
     },
-    'fraction_of_dataset': 0.1,
-    'sigma': 80,
     'threshold': 0.4,
-    'prediction_blur': 1,
-    'rescale_X_input': 256,
-    'rescale_Y_input': 256,
-    'rescale_X_target': 32,
-    'rescale_Y_target': 32
+    'prediction_blur': 1
 }

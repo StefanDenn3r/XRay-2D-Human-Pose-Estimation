@@ -1,10 +1,10 @@
 import cv2
 import numpy as np
 import torch
+import torch.nn.functional as F
 from torchvision.utils import make_grid
 
 from base import BaseTrainer
-from config import CONFIG
 from utils import illustration_utils
 
 
@@ -59,7 +59,9 @@ class Trainer(BaseTrainer):
 
             self.optimizer.zero_grad()
             output = self.model(data)
-            print(f'data: {data.shape}, output: {output.shape}, target: {target.shape}')
+
+            target = F.interpolate(target, size=output.shape[-2:])
+
             loss = self.loss(output, target)
             loss.backward()
             self.optimizer.step()
@@ -90,20 +92,22 @@ class Trainer(BaseTrainer):
                 pred_landmarks = [[np.unravel_index(np.argmax(i_output[idx], axis=None), i_output[idx].shape)
                                    for idx in range(i_output.shape[0])] for i_output in output]
 
-                target_radius = max(1, int(target.shape[-1]*0.02))
+                target_radius = max(1, int(target.shape[-1] * 0.02))
 
                 for idx, image in enumerate(data.cpu().detach().numpy()):
                     arr = []
-                    for channel_idx, ((target_y, target_x), (pred_y, pred_x)) in enumerate(zip(target_landmarks[idx], pred_landmarks[idx])):
+                    for channel_idx, ((target_y, target_x), (pred_y, pred_x)) in enumerate(
+                            zip(target_landmarks[idx], pred_landmarks[idx])):
                         temp_target = np.expand_dims(target[idx, channel_idx], axis=0)
                         curr_target = np.concatenate((np.copy(temp_target), np.copy(temp_target), np.copy(temp_target)))
                         if np.sum(target[idx, channel_idx]) > 0:
                             illustration_utils.draw_red_landmark(curr_target, target_x, target_y, target_radius)
 
-                        temp_output = np.expand_dims(cv2.normalize(output[idx, channel_idx], None, 0, 1, cv2.NORM_MINMAX, cv2.CV_32F), axis=0)
+                        temp_output = np.expand_dims(
+                            cv2.normalize(output[idx, channel_idx], None, 0, 1, cv2.NORM_MINMAX, cv2.CV_32F), axis=0)
                         curr_output = np.concatenate((np.copy(temp_output), np.copy(temp_output), np.copy(temp_output)))
 
-                        if temp_output[0, pred_y, pred_x] > CONFIG['threshold']:
+                        if temp_output[0, pred_y, pred_x] > self.config['threshold']:
                             illustration_utils.draw_red_landmark(curr_output, pred_x, pred_y, target_radius)
 
                         arr.append(curr_target),
@@ -114,7 +118,7 @@ class Trainer(BaseTrainer):
                     image_target = np.concatenate((np.copy(image), np.copy(image), np.copy(image)))
                     image_pred = np.copy(image_target)
 
-                    image_radius = max(1, int(data.shape[-1]*0.02))
+                    image_radius = max(1, int(data.shape[-1] * 0.02))
 
                     for channel_idx, (y, x) in enumerate(target_landmarks[idx]):
                         if np.sum(target[idx, channel_idx]) > 0:
@@ -123,7 +127,7 @@ class Trainer(BaseTrainer):
                             illustration_utils.draw_red_landmark(image_target, x, y, image_radius)
 
                     for channel_idx, (y, x) in enumerate(pred_landmarks[idx]):
-                        if output[idx, channel_idx, y, x] > CONFIG['threshold']:
+                        if output[idx, channel_idx, y, x] > self.config['threshold']:
                             x *= (data.shape[-1] // target.shape[-1])
                             y *= (data.shape[-1] // target.shape[-1])
                             illustration_utils.draw_red_landmark(image_pred, x, y, image_radius)
@@ -135,6 +139,7 @@ class Trainer(BaseTrainer):
                                           ]), nrow=2, normalize=True))
 
                 # custom end
+
                 if epoch == 1:
                     self.writer.add_image(f'input_{batch_idx}', make_grid(data.cpu(), nrow=8, normalize=True))
 
@@ -169,6 +174,7 @@ class Trainer(BaseTrainer):
                 data, target = data.to(self.device), target.to(self.device)
 
                 output = self.model(data)
+                target = F.interpolate(target, size=output.shape[-2:])
                 loss = self.loss(output, target)
 
                 self.writer.set_step((epoch - 1) * len(self.valid_data_loader) + batch_idx, 'valid')

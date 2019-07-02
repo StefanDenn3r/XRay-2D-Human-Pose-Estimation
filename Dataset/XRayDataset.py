@@ -7,7 +7,6 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 
 import utils
-from config import CONFIG
 from custom_transforms.Gaussfilter import Gaussfilter
 from custom_transforms.Normalize import Normalize
 from custom_transforms.Resize import Resize
@@ -17,7 +16,7 @@ from custom_transforms.ToTensor import ToTensor
 class XRayDataset(Dataset):
     """X-Ray Landmarks dataset."""
 
-    def __init__(self, root_dir, training, transform=None):
+    def __init__(self, root_dir, transform=None, custom_args=None):
         """
         Args:
             root_dir (string): Directory with all the images.
@@ -26,8 +25,11 @@ class XRayDataset(Dataset):
         self.root_dir = root_dir
         self.data_dir_paths = []
         self.items_called = 0
-        self.sigma = CONFIG['sigma']
-        if training:
+        self.sigma = custom_args['sigma']
+        self.rescale_X_input = custom_args['rescale_X_input']
+        self.rescale_Y_input = custom_args['rescale_Y_input']
+
+        if custom_args['isTraining']:
             self.data_dir_paths += utils.retrieve_sub_folder_paths(os.path.join(self.root_dir, "Training"))
             self.data_dir_paths += utils.retrieve_sub_folder_paths(os.path.join(self.root_dir, "Validation"))
         else:
@@ -40,7 +42,7 @@ class XRayDataset(Dataset):
         if dataset_size <= 10:
             return
         indices = list(range(dataset_size))
-        split = int(np.floor(CONFIG['fraction_of_dataset'] * dataset_size))
+        split = int(np.floor(custom_args['fraction_of_dataset'] * dataset_size))
 
         np.random.seed(42)
         np.random.shuffle(indices)
@@ -88,17 +90,11 @@ class XRayDataset(Dataset):
         self.sigma = self.sigma * 0.995
 
     def get_transform(self):
-        input_rescale = (CONFIG['rescale_X_input'], CONFIG['rescale_Y_input'])
-        if CONFIG['arch']['args']['dilation'] == 1:
-            target_rescale = (CONFIG['rescale_X_target'], CONFIG['rescale_Y_target'])
-        else:
-            target_rescale = input_rescale
         transform = transforms.Compose([
             Gaussfilter(self.sigma),
             Normalize(),
             Resize(
-                rescale_input=input_rescale,
-                rescale_target=target_rescale
+                rescale_input=(self.rescale_X_input, self.rescale_Y_input)
             ),
             ToTensor()
         ])
