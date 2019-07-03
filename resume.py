@@ -24,8 +24,10 @@ def resume(run_dir=None, model_pth=None):
         else:
             model_path = os.path.join(run_path, model_pth)
             break
-
+    
     config = SourceFileLoader("CONFIG", os.path.join(run_path, 'config.py')).load_module().CONFIG
+    epoch = int(model_path.split('checkpoint-epoch')[-1][:-4])
+    config['data_loader']['args']['custom_args']['sigma'] *= config['data_loader']['args']['custom_args']['sigma_reduction_factor']   ** epoch
 
     main(ConfigParser(config, model_path))
 

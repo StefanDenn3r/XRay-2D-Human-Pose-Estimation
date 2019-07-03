@@ -26,6 +26,7 @@ class XRayDataset(Dataset):
         self.data_dir_paths = []
         self.items_called = 0
         self.sigma = custom_args['sigma']
+        self.sigma_reduction_factor = custom_args['sigma_reduction_factor']
         self.rescale_X_input = custom_args['rescale_X_input']
         self.rescale_Y_input = custom_args['rescale_Y_input']
 
@@ -56,7 +57,6 @@ class XRayDataset(Dataset):
 
         self.items_called += 1
         item_dir = self.data_dir_paths[idx]
-
         im = Image.open(glob.glob(os.path.join(item_dir, "*.png"))[0])
         im = np.asarray(im)
         im = np.float32(im)
@@ -67,7 +67,6 @@ class XRayDataset(Dataset):
         # image = Image.open(glob.glob(os.path.join(item_dir, "*.png"))[0], 0)
 
         (height, width) = image.shape
-
         item_landmarks = np.array(
             [np.array([int(i) for i in line.rstrip('\n').split(";")])
              for line in open(glob.glob(os.path.join(item_dir, "*.txt"))[0])]
@@ -87,7 +86,7 @@ class XRayDataset(Dataset):
         return sample
 
     def set_sigma(self):
-        self.sigma = self.sigma * 0.995
+        self.sigma = self.sigma * self.sigma_reduction_factor
 
     def get_transform(self):
         transform = transforms.Compose([
