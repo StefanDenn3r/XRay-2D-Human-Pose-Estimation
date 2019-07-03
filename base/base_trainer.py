@@ -2,7 +2,6 @@ from abc import abstractmethod
 
 import torch
 from numpy import inf
-from torchsummary import summary
 
 from logger import WriterTensorboardX
 
@@ -107,6 +106,8 @@ class BaseTrainer:
                     not_improved_count = 0
                     best = True
                 else:
+                    if 'not_improved_count' not in locals():
+                        not_improved_count = 0
                     not_improved_count += 1
 
                 if not_improved_count > self.early_stop:
