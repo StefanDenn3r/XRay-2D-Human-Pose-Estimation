@@ -4,11 +4,11 @@ CONFIG = {
     "arch": {
         "type": "ConvolutionalPoseMachines",
         "args": {
-            "x_channels": 128,
-            "stage_channels": 512,
+            "x_channels": 5,
+            "stage_channels": 5,
             "num_stages": 1,
             "num_classes": 23,
-            "depthwise_separable_convolution": False,
+            "depthwise_separable_convolution": True,
             "dilation": 4
 
         }
@@ -19,8 +19,16 @@ CONFIG = {
             "data_dir": "data/XRay/Patient_0",
             "batch_size": 1,
             "shuffle": False,
-            "validation_split": 0.1,
-            "num_workers": 0
+            "validation_split": 0.2,
+            "num_workers": 0,
+            "custom_args": {
+                'isTraining': True,
+                'sigma': 80,
+                'sigma_reduction_factor': 0.995,
+                'rescale_X_input': 256,
+                'rescale_Y_input': 256,
+                'fraction_of_dataset': 0.1,
+            }
         }
     },
     "optimizer": {
@@ -45,7 +53,7 @@ CONFIG = {
         }
     },
     "trainer": {
-        "epochs": 1,
+        "epochs": 3,
         "save_dir": "saved/",
         "save_period": 1,
         "verbosity": 2,
@@ -53,12 +61,6 @@ CONFIG = {
         "early_stop": 20,
         "tensorboardX": True
     },
-    'fraction_of_dataset': 0.1,
-    'sigma': 80,
-    'threshold': 0.01,
-    'prediction_blur': 1,
-    'rescale_X_input': 256,
-    'rescale_Y_input': 256,
-    'rescale_X_target': 32,
-    'rescale_Y_target': 32
+    'threshold': 0.4,
+    'prediction_blur': 1
 }

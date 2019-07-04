@@ -1,6 +1,6 @@
 from bayes_opt import BayesianOptimization
 
-from config import CONFIG  # maybe make parameter
+from config import CONFIG
 from parse_config import ConfigParser
 from train import main
 

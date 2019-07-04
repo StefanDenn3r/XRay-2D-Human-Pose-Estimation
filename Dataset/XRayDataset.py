@@ -1,18 +1,22 @@
 import glob
 import os
+
 import PIL.Image as Image
-import cv2
 import numpy as np
 from torch.utils.data import Dataset
-from config import CONFIG
-import utils
+from torchvision import transforms
 
+import utils
+from custom_transforms.Gaussfilter import Gaussfilter
+from custom_transforms.Normalize import Normalize
+from custom_transforms.Resize import Resize
+from custom_transforms.ToTensor import ToTensor
 
 
 class XRayDataset(Dataset):
     """X-Ray Landmarks dataset."""
 
-    def __init__(self, root_dir, training, transform=None):
+    def __init__(self, root_dir, transform=None, custom_args=None):
         """
         Args:
             root_dir (string): Directory with all the images.
@@ -20,8 +24,13 @@ class XRayDataset(Dataset):
         """
         self.root_dir = root_dir
         self.data_dir_paths = []
+        self.items_called = 0
+        self.sigma = custom_args['sigma']
+        self.sigma_reduction_factor = custom_args['sigma_reduction_factor']
+        self.rescale_X_input = custom_args['rescale_X_input']
+        self.rescale_Y_input = custom_args['rescale_Y_input']
 
-        if training:
+        if custom_args['isTraining']:
             self.data_dir_paths += utils.retrieve_sub_folder_paths(os.path.join(self.root_dir, "Training"))
             self.data_dir_paths += utils.retrieve_sub_folder_paths(os.path.join(self.root_dir, "Validation"))
         else:
@@ -34,7 +43,7 @@ class XRayDataset(Dataset):
         if dataset_size <= 10:
             return
         indices = list(range(dataset_size))
-        split = int(np.floor(CONFIG['fraction_of_dataset'] * dataset_size))
+        split = int(np.floor(custom_args['fraction_of_dataset'] * dataset_size))
 
         np.random.seed(42)
         np.random.shuffle(indices)
@@ -45,8 +54,9 @@ class XRayDataset(Dataset):
         return len(self.data_dir_paths)
 
     def __getitem__(self, idx):
-        item_dir = self.data_dir_paths[idx]
 
+        self.items_called += 1
+        item_dir = self.data_dir_paths[idx]
         im = Image.open(glob.glob(os.path.join(item_dir, "*.png"))[0])
         im = np.asarray(im)
         im = np.float32(im)
@@ -54,10 +64,9 @@ class XRayDataset(Dataset):
         minI = np.min(im)
         im = (im - minI) / (maxI - minI)
         image = np.asarray(im)
-       # image = Image.open(glob.glob(os.path.join(item_dir, "*.png"))[0], 0)
+        # image = Image.open(glob.glob(os.path.join(item_dir, "*.png"))[0], 0)
 
         (height, width) = image.shape
-
         item_landmarks = np.array(
             [np.array([int(i) for i in line.rstrip('\n').split(";")])
              for line in open(glob.glob(os.path.join(item_dir, "*.txt"))[0])]
@@ -72,6 +81,20 @@ class XRayDataset(Dataset):
         sample = (image, target)
 
         if self.transform:
-            sample = self.transform(sample)
+            sample = self.get_transform()(sample)
 
         return sample
+
+    def set_sigma(self):
+        self.sigma = self.sigma * self.sigma_reduction_factor
+
+    def get_transform(self):
+        transform = transforms.Compose([
+            Gaussfilter(self.sigma),
+            Normalize(),
+            Resize(
+                rescale_input=(self.rescale_X_input, self.rescale_Y_input)
+            ),
+            ToTensor()
+        ])
+        return transform
