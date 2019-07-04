@@ -23,7 +23,9 @@ def percentage_correct_keypoints(output, target):
     predictions = output.cpu().detach().numpy()
     target = target.cpu().detach().numpy()
 
-    distance_threshold = np.linalg.norm(target.shape[2:4]) * 0.1  # 10% of image diagonal as distance_threshold
+    pixel_mm = 0.62  # 479 x 615 (image size) : 300 x 384 mm^2 (Detector size)
+    distance_threshold = 0.2 * np.max(output.shape) * pixel_mm
+
     target_landmarks_batch = [[np.unravel_index(np.argmax(i_target[idx], axis=None), i_target[idx].shape)
                                for idx in range(i_target.shape[0])] for i_target in target]
     true_positives = 0
@@ -43,7 +45,7 @@ def percentage_correct_keypoints(output, target):
             # check if either landmark is correctly predicted as not given OR predicted landmarks is within radius
             if (prediction[idx, channel_idx, pred_landmark[0], pred_landmark[1]] <= CONFIG['threshold']
                     and np.sum(target_landmark) == 0
-                    or np.linalg.norm(pred_landmark - target_landmark) <= distance_threshold):
+                    or np.linalg.norm(pred_landmark - target_landmark) * pixel_mm <= distance_threshold):
                 true_positives += 1
 
             all_predictions += 1
