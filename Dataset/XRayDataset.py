@@ -92,9 +92,6 @@ class XRayDataset(Dataset):
         transform = transforms.Compose([
             Gaussfilter(self.sigma),
             Normalize(),
-            Resize(
-                rescale_input=(self.rescale_X_input, self.rescale_Y_input)
-            ),
             ToTensor()
         ])
         return transform
