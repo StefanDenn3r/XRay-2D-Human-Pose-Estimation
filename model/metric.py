@@ -24,7 +24,7 @@ def percentage_correct_keypoints(output, target):
     target = target.cpu().detach().numpy()
 
     pixel_mm = 0.62  # 479 x 615 (image size) : 300 x 384 mm^2 (Detector size)
-    distance_threshold = 0.2 * np.max(output.shape) * pixel_mm
+    distance_threshold = 0.03 * np.max(output.shape) * pixel_mm
 
     target_landmarks_batch = [[np.unravel_index(np.argmax(i_target[idx], axis=None), i_target[idx].shape)
                                for idx in range(i_target.shape[0])] for i_target in target]
