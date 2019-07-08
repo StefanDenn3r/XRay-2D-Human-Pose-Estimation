@@ -16,3 +16,9 @@ def draw_red_landmark(array, x, y, radius):
     array[0, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 1
     array[1, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 0
     array[2, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 0
+
+
+def draw_green_landmark(array, x, y, radius):
+    array[0, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 0
+    array[1, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 1
+    array[2, (y - radius):(y + radius + 1), (x - radius):(x + radius + 1)] = 0

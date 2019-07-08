@@ -9,7 +9,6 @@ from torchvision import transforms
 import utils
 from custom_transforms.Gaussfilter import Gaussfilter
 from custom_transforms.Normalize import Normalize
-from custom_transforms.Resize import Resize
 from custom_transforms.ToTensor import ToTensor
 
 
@@ -27,8 +26,6 @@ class XRayDataset(Dataset):
         self.items_called = 0
         self.sigma = custom_args['sigma']
         self.sigma_reduction_factor = custom_args['sigma_reduction_factor']
-        self.rescale_X_input = custom_args['rescale_X_input']
-        self.rescale_Y_input = custom_args['rescale_Y_input']
 
         if custom_args['isTraining']:
             self.data_dir_paths += utils.retrieve_sub_folder_paths(os.path.join(self.root_dir, "Training"))
@@ -57,7 +54,8 @@ class XRayDataset(Dataset):
 
         self.items_called += 1
         item_dir = self.data_dir_paths[idx]
-        im = Image.open(glob.glob(os.path.join(item_dir, "*.png"))[0])
+        item_path = glob.glob(os.path.join(item_dir, "*.png"))[0]
+        im = Image.open(item_path)
         im = np.asarray(im)
         im = np.float32(im)
         maxI = np.max(im)
