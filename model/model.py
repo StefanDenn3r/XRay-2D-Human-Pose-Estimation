@@ -30,10 +30,11 @@ class X(BaseModel):
         super(X, self).__init__()
         self.dilation = dilation
 
+        conv1 = nn.Conv2d(in_channels=1, out_channels=x_channels, kernel_size=9, padding=same_padding(9))
+
         if depthwise_separable_convolution:
             self.convs = nn.ModuleList([
-                DepthwiseSeparableConvolution(in_channels=1, out_channels=x_channels, kernel_size=9,
-                                              padding=same_padding(9)),
+                conv1,
                 DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=9,
                                               padding=same_padding(9)),
                 DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=9,
@@ -43,7 +44,7 @@ class X(BaseModel):
             ])
         else:
             self.convs = nn.ModuleList([
-                nn.Conv2d(in_channels=1, out_channels=x_channels, kernel_size=9, padding=same_padding(9)),
+                conv1,
                 nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=9,
                           padding=same_padding(9, dilation), dilation=dilation),
                 nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=9,
