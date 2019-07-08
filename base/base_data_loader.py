@@ -1,7 +1,7 @@
 import numpy as np
 from torch.utils.data import DataLoader
 from torch.utils.data._utils.collate import default_collate
-from torch.utils.data.sampler import SubsetRandomSampler
+from torch.utils.data.sampler import SubsetRandomSampler, SequentialSampler
 
 
 class BaseDataLoader(DataLoader):
@@ -45,8 +45,12 @@ class BaseDataLoader(DataLoader):
         valid_idx = idx_full[0:len_valid]
         train_idx = np.delete(idx_full, np.arange(0, len_valid))
 
-        train_sampler = SubsetRandomSampler(train_idx)
-        valid_sampler = SubsetRandomSampler(valid_idx)
+        if self.shuffle:
+            train_sampler = SubsetRandomSampler(train_idx)
+            valid_sampler = SubsetRandomSampler(valid_idx)
+        else:
+            train_sampler = SequentialSampler(train_idx)
+            valid_sampler = SequentialSampler(valid_idx)
 
         # turn off shuffle option which is mutually exclusive with sampler
         self.shuffle = False
