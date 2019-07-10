@@ -23,7 +23,7 @@ def percentage_correct_keypoints(output, target):
     predictions = output.cpu().detach().numpy()
     target = target.cpu().detach().numpy()
 
-    distance_threshold = 0.03 * np.max(output.shape) # 15 pixels out of 479 x 615 input image
+    distance_threshold = 0.03 * np.max(output.shape)  # 15 pixels out of 479 x 615 input image
 
     target_landmarks_batch = [[np.unravel_index(np.argmax(i_target[idx], axis=None), i_target[idx].shape)
                                for idx in range(i_target.shape[0])] for i_target in target]

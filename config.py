@@ -9,7 +9,7 @@ CONFIG = {
             "num_stages": 1,
             "num_classes": 23,
             "depthwise_separable_convolution": True,
-            "dilation": 4
+            "dilation": 1
 
         }
     },
