@@ -9,6 +9,7 @@ CONFIG = {
             "num_stages": 1,
             "num_classes": 23,
             "depthwise_separable_convolution": True,
+            "squeeze_excitation": True,
             "dilation": 4
 
         }
@@ -24,7 +25,7 @@ CONFIG = {
             "custom_args": {
                 'isTraining': True,
                 'sigma': 80,
-                'sigma_reduction_factor': 0.995,
+                'sigma_reduction_factor': 0.99,
                 'rescale_X_input': 256,
                 'rescale_Y_input': 256,
                 'fraction_of_dataset': 0.1,
@@ -53,7 +54,7 @@ CONFIG = {
         }
     },
     "trainer": {
-        "epochs": 3,
+        "epochs": 10,
         "save_dir": "saved/",
         "save_period": 1,
         "verbosity": 2,
