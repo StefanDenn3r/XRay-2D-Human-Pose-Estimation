@@ -25,8 +25,6 @@ CONFIG = {
                 'isTraining': True,
                 'sigma': 80,
                 'sigma_reduction_factor': 0.995,
-                'rescale_X_input': 256,
-                'rescale_Y_input': 256,
                 'fraction_of_dataset': 0.1,
             }
         }
