@@ -134,7 +134,9 @@ class Trainer(BaseTrainer):
                             illustration_utils.draw_green_landmark(image_pred, x, y, image_radius)
                         elif np.sum(target[idx, channel_idx]) > 0:
                             # landmark below threshold but should be present.
-                            illustration_utils.draw_red_landmark(image_target, x, y, image_radius)
+                            x *= (data.shape[-1] // target.shape[-1])
+                            y *= (data.shape[-1] // target.shape[-1])
+                            illustration_utils.draw_red_landmark(image_pred, x, y, image_radius)
 
                     self.writer.add_image(f'target_predictions_{sample_idx}',
                                           make_grid(torch.tensor([
