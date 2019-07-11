@@ -26,6 +26,8 @@ class XRayDataset(Dataset):
         self.items_called = 0
         self.sigma = custom_args['sigma']
         self.sigma_reduction_factor = custom_args['sigma_reduction_factor']
+        self.minimum_sigma_image_ratio = custom_args['minimum_sigma_image_ratio']
+        self.minimum_sigma = 0
 
         if custom_args['isTraining']:
             self.data_dir_paths += utils.retrieve_sub_folder_paths(os.path.join(self.root_dir, "Training"))
@@ -52,7 +54,6 @@ class XRayDataset(Dataset):
 
     def __getitem__(self, idx):
 
-        self.items_called += 1
         item_dir = self.data_dir_paths[idx]
         item_path = glob.glob(os.path.join(item_dir, "*.png"))[0]
         im = Image.open(item_path)
@@ -70,6 +71,11 @@ class XRayDataset(Dataset):
              for line in open(glob.glob(os.path.join(item_dir, "*.txt"))[0])]
         )
 
+        if self.minimum_sigma == 0:
+            self.minimum_sigma = np.max(image.shape) * self.minimum_sigma_image_ratio
+
+        self.items_called += 1
+
         target = np.zeros([item_landmarks.shape[0], height, width])
 
         for (i, (x, y)) in enumerate(item_landmarks):
@@ -83,8 +89,8 @@ class XRayDataset(Dataset):
 
         return sample
 
-    def set_sigma(self):
-        self.sigma = self.sigma * self.sigma_reduction_factor
+    def update_sigma(self):
+        self.sigma = np.maximum(self.minimum_sigma, self.sigma * self.sigma_reduction_factor)
 
     def get_transform(self):
         transform = transforms.Compose([

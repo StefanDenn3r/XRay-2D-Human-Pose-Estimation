@@ -49,7 +49,6 @@ class Trainer(BaseTrainer):
             The metrics in log must have the key 'metrics'.
         """
         self.model.train()
-        self.data_loader.dataset.set_sigma()
         print(f'Current sigma: {self.data_loader.dataset.sigma}')
         total_loss = 0
         total_metrics = np.zeros(len(self.metrics))
@@ -160,6 +159,8 @@ class Trainer(BaseTrainer):
 
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
+
+        self.data_loader.dataset.update_sigma()
 
         return log
 
