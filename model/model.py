@@ -67,13 +67,11 @@ class X(BaseModel):
                     conv1,
                     DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=9,
                                                   padding=same_padding(9)),
-                    Squeeze_Excitation(channels=x_channels, ratio = 16),
                     DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=9,
                                                   padding=same_padding(9)),
                     Squeeze_Excitation(channels=x_channels, ratio = 16),
                     DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=32, kernel_size=5,
-                                                  padding=same_padding(5)),
-                    Squeeze_Excitation(channels=32, ratio = 16)
+                                                  padding=same_padding(5))
                 ])
             else:
                 self.convs = nn.ModuleList([
@@ -91,12 +89,10 @@ class X(BaseModel):
                     conv1,
                     nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=9,
                               padding=same_padding(9, dilation), dilation=dilation),
-                    Squeeze_Excitation(channels=x_channels, ratio = 16),
                     nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=9,
                               padding=same_padding(9, dilation), dilation=dilation),
                     Squeeze_Excitation(channels=x_channels, ratio = 16),
-                    nn.Conv2d(in_channels=x_channels, out_channels=32, kernel_size=5, padding=same_padding(5)),
-                    Squeeze_Excitation(channels=32, ratio = 16)
+                    nn.Conv2d(in_channels=x_channels, out_channels=32, kernel_size=5, padding=same_padding(5))
                 ])
             else:
                 self.convs = nn.ModuleList([
@@ -158,21 +154,41 @@ class StageN(BaseModel):
         self.X = X(x_channels, depthwise_separable_convolution, squeeze_excitation, dilation)
 
         if depthwise_separable_convolution:
-            first_convs = [
-                DepthwiseSeparableConvolution(in_channels=32 + num_classes, out_channels=x_channels, kernel_size=11,
-                                              padding=same_padding(11)),
-                DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=11,
-                                              padding=same_padding(11)),
-                DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=11,
-                                              padding=same_padding(11))
-            ]
+            if squeeze_excitation:
+                first_convs = [
+                    DepthwiseSeparableConvolution(in_channels=32 + num_classes, out_channels=x_channels, kernel_size=11,
+                                                  padding=same_padding(11)),
+                    DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=11,
+                                                  padding=same_padding(11)),
+                    Squeeze_Excitation(channels=x_channels, ratio = 16),
+                    DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=11,
+                                                  padding=same_padding(11))
+                ]
+            else:
+                first_convs = [
+                    DepthwiseSeparableConvolution(in_channels=32 + num_classes, out_channels=x_channels, kernel_size=11,
+                                                  padding=same_padding(11)),
+                    DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=11,
+                                                  padding=same_padding(11)),
+                    DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=11,
+                                                  padding=same_padding(11))
+                ]
         else:
-            first_convs = [
-                nn.Conv2d(in_channels=32 + num_classes, out_channels=x_channels, kernel_size=11,
-                          padding=same_padding(11)),
-                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
-                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
-            ]
+            if squeeze_excitation:
+                first_convs = [
+                    nn.Conv2d(in_channels=32 + num_classes, out_channels=x_channels, kernel_size=11,
+                              padding=same_padding(11)),
+                    nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
+                    Squeeze_Excitation(channels=x_channels, ratio = 16),
+                    nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
+                ]
+            else:
+                first_convs = [
+                    nn.Conv2d(in_channels=32 + num_classes, out_channels=x_channels, kernel_size=11,
+                              padding=same_padding(11)),
+                    nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
+                    nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
+                ]
 
         self.convs = nn.ModuleList([
             *first_convs,
