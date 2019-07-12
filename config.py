@@ -19,13 +19,14 @@ CONFIG = {
             "data_dir": "data/XRay/Patient_0",
             "batch_size": 1,
             "shuffle": False,
-            "validation_split": 0.2,
+            "validation_split": 0.5,
             "num_workers": 0,
             "custom_args": {
                 'isTraining': True,
                 'sigma': 80,
-                'sigma_reduction_factor': 0.995,
-                'fraction_of_dataset': 0.1,
+                'sigma_reduction_factor': 0.5,
+                'minimum_sigma_image_ratio': 0.02,
+                'fraction_of_dataset': 0.05,
             }
         }
     },
