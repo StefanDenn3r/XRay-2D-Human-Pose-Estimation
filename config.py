@@ -9,8 +9,8 @@ CONFIG = {
             "num_stages": 1,
             "num_classes": 23,
             "depthwise_separable_convolution": True,
-            "dilation": 1
-
+            "dilation": 1,
+            "squeeze_excitation": True
         }
     },
     "data_loader": {
@@ -24,7 +24,7 @@ CONFIG = {
             "custom_args": {
                 'isTraining': True,
                 'sigma': 80,
-                'sigma_reduction_factor': 0.5,
+                'sigma_reduction_factor': 0.95,
                 'minimum_sigma_image_ratio': 0.02,
                 'fraction_of_dataset': 0.05,
             }
