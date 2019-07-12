@@ -25,32 +25,57 @@ class DepthwiseSeparableConvolution(BaseModel):
         return x
 
 
+class GlobalAvgPool(BaseModel):
+    def __init__(self):
+        super(GlobalAvgPool, self).__init__()
+
+    def forward(self, x):
+        return x.view(*(x.shape[:-2]), -1).mean(-1)
+
+
+class SqueezeExcitation(BaseModel):
+    def __init__(self, channels, ratio=16):
+        super(SqueezeExcitation, self).__init__()
+
+        # not in original implementation. Throws error if not used, since original implementation uses greater reduction
+        contract = max(2, channels // ratio)
+        self.se = nn.Sequential(
+            GlobalAvgPool(),
+            nn.Linear(channels, contract),
+            nn.ReLU(inplace=True),
+            nn.Linear(contract, channels),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        se_weight = self.se(x).unsqueeze(-1).unsqueeze(-1)
+        return x.mul(se_weight)
+
+
 class X(BaseModel):
-    def __init__(self, x_channels=128, depthwise_separable_convolution=True, dilation=1):
+    def __init__(self, x_channels=128, depthwise_separable_convolution=True, squeeze_excitation=True, dilation=1):
         super(X, self).__init__()
         self.dilation = dilation
 
-        conv1 = nn.Conv2d(in_channels=1, out_channels=x_channels, kernel_size=9, padding=same_padding(9))
+        convs = [nn.Conv2d(in_channels=1, out_channels=x_channels, kernel_size=9, padding=same_padding(9))]
 
         if depthwise_separable_convolution:
-            self.convs = nn.ModuleList([
-                conv1,
-                DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=9,
-                                              padding=same_padding(9)),
-                DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=9,
-                                              padding=same_padding(9)),
-                DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=32, kernel_size=5,
-                                              padding=same_padding(5))
-            ])
+            convs += [
+                DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=9, padding=same_padding(9)),
+                DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=9, padding=same_padding(9)),
+                DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=32, kernel_size=5, padding=same_padding(5))
+            ]
         else:
-            self.convs = nn.ModuleList([
-                conv1,
-                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=9,
-                          padding=same_padding(9, dilation), dilation=dilation),
-                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=9,
-                          padding=same_padding(9, dilation), dilation=dilation),
-                nn.Conv2d(in_channels=x_channels, out_channels=32, kernel_size=5, padding=same_padding(5)),
-            ])
+            convs += [
+                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=9, padding=same_padding(9, dilation), dilation=dilation),
+                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=9, padding=same_padding(9, dilation), dilation=dilation),
+                nn.Conv2d(in_channels=x_channels, out_channels=32, kernel_size=5, padding=same_padding(5))
+            ]
+
+        if squeeze_excitation:
+            convs.insert(3, SqueezeExcitation(channels=x_channels, ratio=16))
+
+        self.convs = nn.ModuleList(convs)
 
         self.max_pool = nn.MaxPool2d(3, 2, 1)
 
@@ -67,14 +92,13 @@ class X(BaseModel):
 
 
 class Stage1(BaseModel):
-    def __init__(self, x_channels=128, stage_channels=512, num_classes=23, depthwise_separable_convolution=True,
+    def __init__(self, x_channels=128, stage_channels=512, num_classes=23, depthwise_separable_convolution=True, squeeze_excitation=True,
                  dilation=1):
         super(Stage1, self).__init__()
-        self.X = X(x_channels, depthwise_separable_convolution, dilation)
+        self.X = X(x_channels, depthwise_separable_convolution, squeeze_excitation, dilation)
 
         if depthwise_separable_convolution:
-            first_conv = DepthwiseSeparableConvolution(in_channels=32, out_channels=stage_channels, kernel_size=9,
-                                                       padding=same_padding(9))
+            first_conv = DepthwiseSeparableConvolution(in_channels=32, out_channels=stage_channels, kernel_size=9, padding=same_padding(9))
         else:
             first_conv = nn.Conv2d(in_channels=32, out_channels=stage_channels, kernel_size=9, padding=same_padding(9))
 
@@ -97,26 +121,25 @@ class Stage1(BaseModel):
 
 
 class StageN(BaseModel):
-    def __init__(self, x_channels=128, num_classes=23, depthwise_separable_convolution=True, dilation=1):
+    def __init__(self, x_channels=128, num_classes=23, depthwise_separable_convolution=True, squeeze_excitation=True, dilation=1):
         super(StageN, self).__init__()
-        self.X = X(x_channels, depthwise_separable_convolution, dilation)
+        self.X = X(x_channels, depthwise_separable_convolution, squeeze_excitation, dilation)
 
         if depthwise_separable_convolution:
             first_convs = [
-                DepthwiseSeparableConvolution(in_channels=32 + num_classes, out_channels=x_channels, kernel_size=11,
-                                              padding=same_padding(11)),
-                DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=11,
-                                              padding=same_padding(11)),
-                DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=11,
-                                              padding=same_padding(11))
+                DepthwiseSeparableConvolution(in_channels=32 + num_classes, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
+                DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
+                DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=11, padding=same_padding(11))
             ]
         else:
             first_convs = [
-                nn.Conv2d(in_channels=32 + num_classes, out_channels=x_channels, kernel_size=11,
-                          padding=same_padding(11)),
+                nn.Conv2d(in_channels=32 + num_classes, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
                 nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
                 nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
             ]
+
+        if squeeze_excitation:
+            first_convs.insert(3, SqueezeExcitation(channels=x_channels, ratio=16))
 
         self.convs = nn.ModuleList([
             *first_convs,
@@ -141,13 +164,13 @@ class StageN(BaseModel):
 class ConvolutionalPoseMachines(BaseModel):
 
     def __init__(self, x_channels=128, stage_channels=512, num_stages=3, num_classes=23,
-                 depthwise_separable_convolution=True, dilation=1):
+                 depthwise_separable_convolution=True, squeeze_excitation=True, dilation=1):
         super(ConvolutionalPoseMachines, self).__init__()
 
-        self.stage_1 = Stage1(x_channels, stage_channels, num_classes, depthwise_separable_convolution, dilation)
+        self.stage_1 = Stage1(x_channels, stage_channels, num_classes, depthwise_separable_convolution, squeeze_excitation, dilation)
         stages = []
         for _ in range(num_stages - 1):
-            stages.append(StageN(x_channels, num_classes, depthwise_separable_convolution, dilation))
+            stages.append(StageN(x_channels, num_classes, depthwise_separable_convolution, squeeze_excitation, dilation))
 
         self.stages = nn.ModuleList(stages)
 
