@@ -9,7 +9,6 @@ from torchvision import transforms
 import utils
 from custom_transforms.Gaussfilter import Gaussfilter
 from custom_transforms.Normalize import Normalize
-from custom_transforms.Resize import Resize
 from custom_transforms.ToTensor import ToTensor
 
 
@@ -27,8 +26,8 @@ class XRayDataset(Dataset):
         self.items_called = 0
         self.sigma = custom_args['sigma']
         self.sigma_reduction_factor = custom_args['sigma_reduction_factor']
-        self.rescale_X_input = custom_args['rescale_X_input']
-        self.rescale_Y_input = custom_args['rescale_Y_input']
+        self.minimum_sigma_image_ratio = custom_args['minimum_sigma_image_ratio']
+        self.minimum_sigma = 0
 
         if custom_args['isTraining']:
             self.data_dir_paths += utils.retrieve_sub_folder_paths(os.path.join(self.root_dir, "Training"))
@@ -55,9 +54,9 @@ class XRayDataset(Dataset):
 
     def __getitem__(self, idx):
 
-        self.items_called += 1
         item_dir = self.data_dir_paths[idx]
-        im = Image.open(glob.glob(os.path.join(item_dir, "*.png"))[0])
+        item_path = glob.glob(os.path.join(item_dir, "*.png"))[0]
+        im = Image.open(item_path)
         im = np.asarray(im)
         im = np.float32(im)
         maxI = np.max(im)
@@ -72,6 +71,11 @@ class XRayDataset(Dataset):
              for line in open(glob.glob(os.path.join(item_dir, "*.txt"))[0])]
         )
 
+        if self.minimum_sigma == 0:
+            self.minimum_sigma = np.max(image.shape) * self.minimum_sigma_image_ratio
+
+        self.items_called += 1
+
         target = np.zeros([item_landmarks.shape[0], height, width])
 
         for (i, (x, y)) in enumerate(item_landmarks):
@@ -85,16 +89,13 @@ class XRayDataset(Dataset):
 
         return sample
 
-    def set_sigma(self):
-        self.sigma = self.sigma * self.sigma_reduction_factor
+    def update_sigma(self):
+        self.sigma = np.maximum(self.minimum_sigma, self.sigma * self.sigma_reduction_factor)
 
     def get_transform(self):
         transform = transforms.Compose([
             Gaussfilter(self.sigma),
             Normalize(),
-            Resize(
-                rescale_input=(self.rescale_X_input, self.rescale_Y_input)
-            ),
             ToTensor()
         ])
         return transform

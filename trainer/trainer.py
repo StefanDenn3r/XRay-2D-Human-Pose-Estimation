@@ -1,4 +1,3 @@
-import cv2
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -50,7 +49,6 @@ class Trainer(BaseTrainer):
             The metrics in log must have the key 'metrics'.
         """
         self.model.train()
-        self.data_loader.dataset.set_sigma()
         print(f'Current sigma: {self.data_loader.dataset.sigma}')
         total_loss = 0
         total_metrics = np.zeros(len(self.metrics))
@@ -101,13 +99,15 @@ class Trainer(BaseTrainer):
                         temp_target = np.expand_dims(target[idx, channel_idx], axis=0)
                         curr_target = np.concatenate((np.copy(temp_target), np.copy(temp_target), np.copy(temp_target)))
                         if np.sum(target[idx, channel_idx]) > 0:
-                            illustration_utils.draw_red_landmark(curr_target, target_x, target_y, target_radius)
+                            illustration_utils.draw_green_landmark(curr_target, target_x, target_y, target_radius)
 
-                        temp_output = np.expand_dims(
-                            cv2.normalize(output[idx, channel_idx], None, 0, 1, cv2.NORM_MINMAX, cv2.CV_32F), axis=0)
+                        temp_output = np.expand_dims(output[idx, channel_idx], axis=0)
                         curr_output = np.concatenate((np.copy(temp_output), np.copy(temp_output), np.copy(temp_output)))
 
                         if temp_output[0, pred_y, pred_x] > self.config['threshold']:
+                            illustration_utils.draw_green_landmark(curr_output, pred_x, pred_y, target_radius)
+                        elif np.sum(target[idx, channel_idx]) > 0:
+                            # landmark below threshold but should be present.
                             illustration_utils.draw_red_landmark(curr_output, pred_x, pred_y, target_radius)
 
                         arr.append(curr_target),
@@ -124,10 +124,15 @@ class Trainer(BaseTrainer):
                         if np.sum(target[idx, channel_idx]) > 0:
                             x *= (data.shape[-1] // target.shape[-1])
                             y *= (data.shape[-1] // target.shape[-1])
-                            illustration_utils.draw_red_landmark(image_target, x, y, image_radius)
+                            illustration_utils.draw_green_landmark(image_target, x, y, image_radius)
 
                     for channel_idx, (y, x) in enumerate(pred_landmarks[idx]):
                         if output[idx, channel_idx, y, x] > self.config['threshold']:
+                            x *= (data.shape[-1] // target.shape[-1])
+                            y *= (data.shape[-1] // target.shape[-1])
+                            illustration_utils.draw_green_landmark(image_pred, x, y, image_radius)
+                        elif np.sum(target[idx, channel_idx]) > 0:
+                            # landmark below threshold but should be present.
                             x *= (data.shape[-1] // target.shape[-1])
                             y *= (data.shape[-1] // target.shape[-1])
                             illustration_utils.draw_red_landmark(image_pred, x, y, image_radius)
@@ -154,6 +159,8 @@ class Trainer(BaseTrainer):
 
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
+
+        self.data_loader.dataset.update_sigma()
 
         return log
 
