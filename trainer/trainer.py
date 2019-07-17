@@ -101,7 +101,7 @@ class Trainer(BaseTrainer):
                         if np.sum(target[idx, channel_idx]) > 0:
                             x *= (data.shape[-1] // target.shape[-1])
                             y *= (data.shape[-1] // target.shape[-1])
-                            illustration_utils.draw_green_landmark(image_target, x, y, image_radius)
+                            illustration_utils.draw_green_landmark(image_target, x, y, image_radius-3)
 
                     all_predictions.append(image_target * 255)
 
@@ -116,16 +116,20 @@ class Trainer(BaseTrainer):
                             temp_target = np.expand_dims(target[idx, channel_idx], axis=0)
                             curr_target = np.concatenate((np.copy(temp_target), np.copy(temp_target), np.copy(temp_target)))
                             if np.sum(target[idx, channel_idx]) > 0:
-                                illustration_utils.draw_green_landmark(curr_target, target_x, target_y, target_radius)
+                                illustration_utils.draw_green_landmark(curr_target, target_x, target_y, target_radius-2)
+                                illustration_utils.draw_colored_landmark(curr_target, target_x, target_y, target_radius,
+                                                                         channel_idx)
 
                             temp_output = np.expand_dims(output[idx, channel_idx], axis=0)
                             curr_output = np.concatenate((np.copy(temp_output), np.copy(temp_output), np.copy(temp_output)))
 
                             if temp_output[0, pred_y, pred_x] > self.config['threshold']:
-                                illustration_utils.draw_green_landmark(curr_output, pred_x, pred_y, target_radius)
+                                illustration_utils.draw_green_landmark(curr_output, pred_x, pred_y, target_radius-2)
                             elif np.sum(target[idx, channel_idx]) > 0:
                                 # landmark below threshold but should be present.
-                                illustration_utils.draw_red_landmark(curr_output, pred_x, pred_y, target_radius)
+                                illustration_utils.draw_red_landmark(curr_output, pred_x, pred_y, target_radius-2)
+
+                            illustration_utils.draw_colored_landmark(curr_output, pred_x, pred_y, target_radius, channel_idx)
 
                             arr.append(curr_target)
                             arr.append(curr_output)
@@ -137,11 +141,15 @@ class Trainer(BaseTrainer):
                                 x *= (data.shape[-1] // target.shape[-1])
                                 y *= (data.shape[-1] // target.shape[-1])
                                 illustration_utils.draw_green_landmark(image_pred, x, y, image_radius)
+                                illustration_utils.draw_colored_landmark(image_pred, x, y, image_radius,
+                                                                         channel_idx)
                             elif np.sum(target[idx, channel_idx]) > 0:
                                 # landmark below threshold but should be present.
                                 x *= (data.shape[-1] // target.shape[-1])
                                 y *= (data.shape[-1] // target.shape[-1])
                                 illustration_utils.draw_red_landmark(image_pred, x, y, image_radius)
+                                illustration_utils.draw_colored_landmark(image_pred, x, y, image_radius,
+                                                                         channel_idx)
 
                         all_predictions.append(image_pred * 255)
 
