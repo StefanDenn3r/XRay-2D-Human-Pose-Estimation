@@ -8,6 +8,10 @@ def same_padding(kernel_size, dilation=1):
     return (kernel_size + (kernel_size - 1) * (dilation - 1) - 1) // 2
 
 
+def calculate_kernel_size(receptive_field,  dilation):
+    return (dilation - 1 + receptive_field) // dilation
+
+
 class DepthwiseSeparableConvolution(BaseModel):
     def __init__(self, in_channels, out_channels, kernel_size, padding=0):
         super(DepthwiseSeparableConvolution, self).__init__()
@@ -55,7 +59,8 @@ class SqueezeExcitation(BaseModel):
 class X(BaseModel):
     def __init__(self, x_channels=128, depthwise_separable_convolution=True, squeeze_excitation=True, dilation=1):
         super(X, self).__init__()
-        self.dilation = dilation
+
+        kernel_size = calculate_kernel_size(9, dilation)
 
         convs = [nn.Conv2d(in_channels=1, out_channels=x_channels, kernel_size=9, padding=same_padding(9))]
 
@@ -67,8 +72,8 @@ class X(BaseModel):
             ]
         else:
             convs += [
-                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=9, padding=same_padding(9, dilation), dilation=dilation),
-                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=9, padding=same_padding(9, dilation), dilation=dilation),
+                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=kernel_size, padding=same_padding(kernel_size, dilation), dilation=dilation),
+                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=kernel_size, padding=same_padding(kernel_size, dilation), dilation=dilation),
                 nn.Conv2d(in_channels=x_channels, out_channels=32, kernel_size=5, padding=same_padding(5))
             ]
 
@@ -85,7 +90,7 @@ class X(BaseModel):
         for i, conv in enumerate(self.convs):
             x = conv(x)
             x = self.relu(x)
-            if self.dilation == 1 and i < len(self.convs) - 1:
+            if i < len(self.convs) - 1:
                 x = self.max_pool(x)
 
         return x
@@ -125,17 +130,19 @@ class StageN(BaseModel):
         super(StageN, self).__init__()
         self.X = X(x_channels, depthwise_separable_convolution, squeeze_excitation, dilation)
 
+        kernel_size = calculate_kernel_size(11, dilation)
+
         if depthwise_separable_convolution:
             first_convs = [
-                DepthwiseSeparableConvolution(in_channels=32 + num_classes, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
-                DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
-                DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=11, padding=same_padding(11))
+                DepthwiseSeparableConvolution(in_channels=32 + num_classes, out_channels=x_channels, kernel_size=kernel_size, padding=same_padding(kernel_size)),
+                DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=kernel_size, padding=same_padding(kernel_size)),
+                DepthwiseSeparableConvolution(in_channels=x_channels, out_channels=x_channels, kernel_size=kernel_size, padding=same_padding(kernel_size))
             ]
         else:
             first_convs = [
-                nn.Conv2d(in_channels=32 + num_classes, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
-                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
-                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=11, padding=same_padding(11)),
+                nn.Conv2d(in_channels=32 + num_classes, out_channels=x_channels, kernel_size=kernel_size, padding=same_padding(kernel_size)),
+                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=kernel_size, padding=same_padding(kernel_size)),
+                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=kernel_size, padding=same_padding(kernel_size)),
             ]
 
         if squeeze_excitation:
