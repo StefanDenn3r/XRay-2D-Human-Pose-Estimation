@@ -8,8 +8,8 @@ CONFIG = {
             "stage_channels": 5,
             "num_stages": 3,
             "num_classes": 23,
-            "depthwise_separable_convolution": True,
-            "dilation": 1,
+            "depthwise_separable_convolution": False,
+            "dilation": 4,
             "squeeze_excitation": True
         }
     },
@@ -52,13 +52,14 @@ CONFIG = {
         }
     },
     "trainer": {
-        "epochs": 100,
+        "epochs": 200,
         "save_dir": "saved/",
         "save_period": 1,
         "verbosity": 2,
         "monitor": "min val_loss",
         "early_stop": 10,
-        "tensorboardX": True
+        "tensorboardX": True,
+        "keep_only_latest_checkpoint": False
     },
     'threshold': 0.4,
     'prediction_blur': 1

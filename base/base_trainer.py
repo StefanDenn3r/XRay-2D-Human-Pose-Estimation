@@ -1,3 +1,4 @@
+import os
 from abc import abstractmethod
 
 import torch
@@ -21,18 +22,12 @@ class BaseTrainer:
         if len(device_ids) > 1:
             self.model = torch.nn.DataParallel(model, device_ids=device_ids)
 
-        # summary(self.model, (
-        #     1,
-        #     self.config['data_loader']['args']['custom_args']['rescale_X_input'],
-        #     self.config['data_loader']['args']['custom_args']['rescale_Y_input'],
-        #     self.config['data_loader']['args']['batch_size']
-        # ))
-
         self.loss = loss
         self.metrics = metrics
         self.optimizer = optimizer
 
         cfg_trainer = config['trainer']
+        self.keep_only_latest_checkpoint = cfg_trainer['keep_only_latest_checkpoint']
         self.epochs = cfg_trainer['epochs']
         self.save_period = cfg_trainer['save_period']
         self.monitor = cfg_trainer.get('monitor', 'off')
@@ -157,6 +152,10 @@ class BaseTrainer:
         }
         filename = str(self.checkpoint_dir / 'checkpoint-epoch{}.pth'.format(epoch))
         torch.save(state, filename)
+        file_to_delete = str(self.checkpoint_dir / 'checkpoint-epoch{}.pth'.format(epoch - 1))
+        if self.keep_only_latest_checkpoint and os.path.exists(file_to_delete):
+            os.remove(file_to_delete)
+
         self.logger.info("Saving checkpoint: {} ...".format(filename))
         if save_best:
             best_path = str(self.checkpoint_dir / 'model_best.pth')
