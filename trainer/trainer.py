@@ -83,38 +83,43 @@ class Trainer(BaseTrainer):
 
                 target = target.cpu().detach().numpy()
                 outputs = output.cpu().detach().numpy()  # predictions from all stages
-                output = output[-1].cpu().detach().numpy()  # prediction only from final stage
 
                 target_landmarks = [[np.unravel_index(np.argmax(i_target[idx], axis=None), i_target[idx].shape)
                                      for idx in range(i_target.shape[0])] for i_target in target]
 
-                pred_landmarks = [[np.unravel_index(np.argmax(i_output[idx], axis=None), i_output[idx].shape)
-                                   for idx in range(i_output.shape[0])] for i_output in output]
-
                 target_radius = max(1, int(target.shape[-1] * 0.02))
 
                 for idx, image in enumerate(data.cpu().detach().numpy()):
-                    arr = []
-                    for channel_idx, ((target_y, target_x), (pred_y, pred_x)) in enumerate(
-                            zip(target_landmarks[idx], pred_landmarks[idx])):
-                        temp_target = np.expand_dims(target[idx, channel_idx], axis=0)
-                        curr_target = np.concatenate((np.copy(temp_target), np.copy(temp_target), np.copy(temp_target)))
-                        if np.sum(target[idx, channel_idx]) > 0:
-                            illustration_utils.draw_green_landmark(curr_target, target_x, target_y, target_radius)
+                    all_outputs = []
 
-                        temp_output = np.expand_dims(output[idx, channel_idx], axis=0)
-                        curr_output = np.concatenate((np.copy(temp_output), np.copy(temp_output), np.copy(temp_output)))
+                    for stageIdx in range(outputs.shape[0]):
+                        output = outputs[stageIdx]
+                        pred_landmarks = [[np.unravel_index(np.argmax(i_output[idx], axis=None), i_output[idx].shape)
+                                           for idx in range(i_output.shape[0])] for i_output in output]
+                        arr = []
 
-                        if temp_output[0, pred_y, pred_x] > self.config['threshold']:
-                            illustration_utils.draw_green_landmark(curr_output, pred_x, pred_y, target_radius)
-                        elif np.sum(target[idx, channel_idx]) > 0:
-                            # landmark below threshold but should be present.
-                            illustration_utils.draw_red_landmark(curr_output, pred_x, pred_y, target_radius)
+                        for channel_idx, ((target_y, target_x), (pred_y, pred_x)) in enumerate(
+                                zip(target_landmarks[idx], pred_landmarks[idx])):
+                            temp_target = np.expand_dims(target[idx, channel_idx], axis=0)
+                            curr_target = np.concatenate((np.copy(temp_target), np.copy(temp_target), np.copy(temp_target)))
+                            if np.sum(target[idx, channel_idx]) > 0:
+                                illustration_utils.draw_green_landmark(curr_target, target_x, target_y, target_radius)
 
-                        arr.append(curr_target),
-                        arr.append(curr_output),
+                            temp_output = np.expand_dims(output[idx, channel_idx], axis=0)
+                            curr_output = np.concatenate((np.copy(temp_output), np.copy(temp_output), np.copy(temp_output)))
 
-                    self.writer.add_image(f'target_output_{sample_idx}', make_grid(torch.tensor(arr)))
+                            if temp_output[0, pred_y, pred_x] > self.config['threshold']:
+                                illustration_utils.draw_green_landmark(curr_output, pred_x, pred_y, target_radius)
+                            elif np.sum(target[idx, channel_idx]) > 0:
+                                # landmark below threshold but should be present.
+                                illustration_utils.draw_red_landmark(curr_output, pred_x, pred_y, target_radius)
+
+                            arr.append(curr_target)
+                            arr.append(curr_output)
+
+                        all_outputs.append(make_grid(torch.tensor(arr)).cpu().detach().numpy())
+
+                    self.writer.add_image(f'target_output_{sample_idx}', make_grid(torch.tensor(all_outputs), nrow=outputs.shape[0], padding=5, pad_value=1.0))
 
                 for idx, image in enumerate(data.cpu().detach().numpy()):
                     image_target = np.concatenate((np.copy(image), np.copy(image), np.copy(image)))
