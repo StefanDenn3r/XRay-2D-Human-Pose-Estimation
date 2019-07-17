@@ -26,7 +26,7 @@ class XRayDataset(Dataset):
         self.items_called = 0
         self.sigma = custom_args['sigma']
         self.sigma_reduction_factor = custom_args['sigma_reduction_factor']
-        self.minimum_sigma_image_ratio = custom_args['minimum_sigma_image_ratio']
+        self.sigma_reduction_factor_change_rate = custom_args['sigma_reduction_factor_change_rate']
         self.minimum_sigma = 0
 
         if custom_args['isTraining']:
@@ -71,8 +71,7 @@ class XRayDataset(Dataset):
              for line in open(glob.glob(os.path.join(item_dir, "*.txt"))[0])]
         )
 
-        if self.minimum_sigma == 0:
-            self.minimum_sigma = np.max(image.shape) * self.minimum_sigma_image_ratio
+        
 
         self.items_called += 1
 
@@ -88,9 +87,15 @@ class XRayDataset(Dataset):
             sample = self.get_transform()(sample)
 
         return sample
+    
 
+    def update_reduction_factor(self):
+        self.sigma_reduction_factor += self.sigma_reduction_factor*self.sigma_reduction_factor_change_rate
+        self.sigma_reduction_factor = min(1.0, self.sigma_reduction_factor)
+        
     def update_sigma(self):
-        self.sigma = np.maximum(self.minimum_sigma, self.sigma * self.sigma_reduction_factor)
+        self.update_reduction_factor()
+        self.sigma *= self.sigma_reduction_factor
 
     def get_transform(self):
         transform = transforms.Compose([
