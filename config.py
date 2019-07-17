@@ -25,6 +25,7 @@ CONFIG = {
                 'isTraining': True,
                 'sigma': 80,
                 'sigma_reduction_factor': 0.95,
+                'sigma_reduction_factor_change_rate': 0.0005,
                 'minimum_sigma_image_ratio': 0.02,
                 'fraction_of_dataset': 0.05,
             }
@@ -52,12 +53,12 @@ CONFIG = {
         }
     },
     "trainer": {
-        "epochs": 10,
+        "epochs": 100,
         "save_dir": "saved/",
         "save_period": 1,
         "verbosity": 2,
         "monitor": "min val_loss",
-        "early_stop": 20,
+        "early_stop": 10,
         "tensorboardX": True
     },
     'threshold': 0.4,

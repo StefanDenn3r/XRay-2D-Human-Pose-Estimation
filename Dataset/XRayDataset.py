@@ -26,6 +26,7 @@ class XRayDataset(Dataset):
         self.items_called = 0
         self.sigma = custom_args['sigma']
         self.sigma_reduction_factor = custom_args['sigma_reduction_factor']
+        self.sigma_reduction_factor_change_rate = custom_args['sigma_reduction_factor_change_rate']
         self.minimum_sigma_image_ratio = custom_args['minimum_sigma_image_ratio']
         self.minimum_sigma = 0
 
@@ -88,8 +89,14 @@ class XRayDataset(Dataset):
             sample = self.get_transform()(sample)
 
         return sample
+    
 
+    def update_reduction_factor(self):
+        self.sigma_reduction_factor += self.sigma_reduction_factor*self.sigma_reduction_factor_change_rate
+        self.sigma_reduction_factor = min(1.0, self.sigma_reduction_factor)
+        
     def update_sigma(self):
+        self.update_reduction_factor()
         self.sigma = np.maximum(self.minimum_sigma, self.sigma * self.sigma_reduction_factor)
 
     def get_transform(self):
