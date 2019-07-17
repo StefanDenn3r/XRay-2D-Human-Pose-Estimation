@@ -31,7 +31,7 @@ def resume(run_dir=None, model_pth=None):
         config['data_loader']['args']['custom_args']['sigma_reduction_factor'] += config['data_loader']['args']['custom_args']['sigma_reduction_factor']* \
             config['data_loader']['args']['custom_args']['sigma_reduction_factor_change_rate']
         config['data_loader']['args']['custom_args']['sigma'] *= config['data_loader']['args']['custom_args']['sigma_reduction_factor'] 
-    
+    config['data_loader']['args']['custom_args']['sigma'] = max(20, config['data_loader']['args']['custom_args']['sigma'])
     main(ConfigParser(config, model_path))
 
 
