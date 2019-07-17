@@ -59,7 +59,8 @@ class SqueezeExcitation(BaseModel):
 class X(BaseModel):
     def __init__(self, x_channels=128, depthwise_separable_convolution=True, squeeze_excitation=True, dilation=1):
         super(X, self).__init__()
-        self.dilation = dilation
+
+        kernel_size = calculate_kernel_size(9, dilation)
 
         convs = [nn.Conv2d(in_channels=1, out_channels=x_channels, kernel_size=9, padding=same_padding(9))]
 
@@ -71,8 +72,8 @@ class X(BaseModel):
             ]
         else:
             convs += [
-                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=9, padding=same_padding(9, dilation), dilation=dilation),
-                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=9, padding=same_padding(9, dilation), dilation=dilation),
+                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=kernel_size, padding=same_padding(kernel_size, dilation), dilation=dilation),
+                nn.Conv2d(in_channels=x_channels, out_channels=x_channels, kernel_size=kernel_size, padding=same_padding(kernel_size, dilation), dilation=dilation),
                 nn.Conv2d(in_channels=x_channels, out_channels=32, kernel_size=5, padding=same_padding(5))
             ]
 
@@ -129,7 +130,7 @@ class StageN(BaseModel):
         super(StageN, self).__init__()
         self.X = X(x_channels, depthwise_separable_convolution, squeeze_excitation, dilation)
 
-        kernel_size = self.calculate_kernel_size(11, dilation)
+        kernel_size = calculate_kernel_size(11, dilation)
 
         if depthwise_separable_convolution:
             first_convs = [
