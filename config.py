@@ -6,7 +6,7 @@ CONFIG = {
         "args": {
             "x_channels": 5,
             "stage_channels": 5,
-            "num_stages": 1,
+            "num_stages": 3,
             "num_classes": 23,
             "depthwise_separable_convolution": True,
             "dilation": 1,
