@@ -90,7 +90,20 @@ class Trainer(BaseTrainer):
                 target_radius = max(1, int(target.shape[-1] * 0.02))
 
                 for idx, image in enumerate(data.cpu().detach().numpy()):
-                    all_outputs = []
+                    all_outputs, all_predictions = [], []
+
+                    image_target = np.concatenate((np.copy(image), np.copy(image), np.copy(image)))
+                    image_pred = np.copy(image_target)
+
+                    image_radius = max(1, int(data.shape[-1] * 0.02))
+
+                    for channel_idx, (y, x) in enumerate(target_landmarks[idx]):
+                        if np.sum(target[idx, channel_idx]) > 0:
+                            x *= (data.shape[-1] // target.shape[-1])
+                            y *= (data.shape[-1] // target.shape[-1])
+                            illustration_utils.draw_green_landmark(image_target, x, y, image_radius)
+
+                    all_predictions.append(image_target * 255)
 
                     for stageIdx in range(outputs.shape[0]):
                         output = outputs[stageIdx]
@@ -119,29 +132,6 @@ class Trainer(BaseTrainer):
 
                         all_outputs.append(make_grid(torch.tensor(arr)).cpu().detach().numpy())
 
-                    self.writer.add_image(f'target_output_{sample_idx}', make_grid(torch.tensor(all_outputs), nrow=outputs.shape[0], padding=5, pad_value=1.0))
-
-                for idx, image in enumerate(data.cpu().detach().numpy()):
-                    image_target = np.concatenate((np.copy(image), np.copy(image), np.copy(image)))
-                    image_pred = np.copy(image_target)
-
-                    image_radius = max(1, int(data.shape[-1] * 0.02))
-
-                    all_predictions = []
-
-                    for channel_idx, (y, x) in enumerate(target_landmarks[idx]):
-                        if np.sum(target[idx, channel_idx]) > 0:
-                            x *= (data.shape[-1] // target.shape[-1])
-                            y *= (data.shape[-1] // target.shape[-1])
-                            illustration_utils.draw_green_landmark(image_target, x, y, image_radius)
-
-                    all_predictions.append(image_target * 255)
-
-                    for stageIdx in range(outputs.shape[0]):
-                        output = outputs[stageIdx]
-                        pred_landmarks = [[np.unravel_index(np.argmax(i_output[idx], axis=None), i_output[idx].shape)
-                                           for idx in range(i_output.shape[0])] for i_output in output]
-
                         for channel_idx, (y, x) in enumerate(pred_landmarks[idx]):
                             if output[idx, channel_idx, y, x] > self.config['threshold']:
                                 x *= (data.shape[-1] // target.shape[-1])
@@ -155,8 +145,11 @@ class Trainer(BaseTrainer):
 
                         all_predictions.append(image_pred * 255)
 
+                    self.writer.add_image(f'target_output_{sample_idx}',
+                                          make_grid(torch.tensor(all_outputs), nrow=outputs.shape[0], padding=5,
+                                                    pad_value=1.0))
                     self.writer.add_image(f'target_predictions_{sample_idx}',
-                                          make_grid(torch.tensor(all_predictions), nrow=outputs.shape[0]+1, normalize=True))
+                                          make_grid(torch.tensor(all_predictions), nrow=outputs.shape[0]+1, normalize=True, padding=5, pad_value=1.0))
                 # custom end
 
                 if epoch == 1:
