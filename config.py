@@ -6,7 +6,7 @@ CONFIG = {
         "args": {
             "x_channels": 5,
             "stage_channels": 5,
-            "num_stages": 1,
+            "num_stages": 3,
             "num_classes": 23,
             "depthwise_separable_convolution": True,
             "dilation": 1,
@@ -52,7 +52,7 @@ CONFIG = {
         }
     },
     "trainer": {
-        "epochs": 10,
+        "epochs": 5,
         "save_dir": "saved/",
         "save_period": 1,
         "verbosity": 2,

@@ -82,7 +82,8 @@ class Trainer(BaseTrainer):
                 # custom begin
 
                 target = target.cpu().detach().numpy()
-                output = output[-1].cpu().detach().numpy()  # only last one relevant for final prediction
+                outputs = output.cpu().detach().numpy()  # predictions from all stages
+                output = output[-1].cpu().detach().numpy()  # prediction only from final stage
 
                 target_landmarks = [[np.unravel_index(np.argmax(i_target[idx], axis=None), i_target[idx].shape)
                                      for idx in range(i_target.shape[0])] for i_target in target]
@@ -115,10 +116,13 @@ class Trainer(BaseTrainer):
 
                     self.writer.add_image(f'target_output_{sample_idx}', make_grid(torch.tensor(arr)))
 
+                for idx, image in enumerate(data.cpu().detach().numpy()):
                     image_target = np.concatenate((np.copy(image), np.copy(image), np.copy(image)))
                     image_pred = np.copy(image_target)
 
                     image_radius = max(1, int(data.shape[-1] * 0.02))
+
+                    all_predictions = []
 
                     for channel_idx, (y, x) in enumerate(target_landmarks[idx]):
                         if np.sum(target[idx, channel_idx]) > 0:
@@ -126,23 +130,28 @@ class Trainer(BaseTrainer):
                             y *= (data.shape[-1] // target.shape[-1])
                             illustration_utils.draw_green_landmark(image_target, x, y, image_radius)
 
-                    for channel_idx, (y, x) in enumerate(pred_landmarks[idx]):
-                        if output[idx, channel_idx, y, x] > self.config['threshold']:
-                            x *= (data.shape[-1] // target.shape[-1])
-                            y *= (data.shape[-1] // target.shape[-1])
-                            illustration_utils.draw_green_landmark(image_pred, x, y, image_radius)
-                        elif np.sum(target[idx, channel_idx]) > 0:
-                            # landmark below threshold but should be present.
-                            x *= (data.shape[-1] // target.shape[-1])
-                            y *= (data.shape[-1] // target.shape[-1])
-                            illustration_utils.draw_red_landmark(image_pred, x, y, image_radius)
+                    all_predictions.append(image_target * 255)
+
+                    for stageIdx in range(outputs.shape[0]):
+                        output = outputs[stageIdx]
+                        pred_landmarks = [[np.unravel_index(np.argmax(i_output[idx], axis=None), i_output[idx].shape)
+                                           for idx in range(i_output.shape[0])] for i_output in output]
+
+                        for channel_idx, (y, x) in enumerate(pred_landmarks[idx]):
+                            if output[idx, channel_idx, y, x] > self.config['threshold']:
+                                x *= (data.shape[-1] // target.shape[-1])
+                                y *= (data.shape[-1] // target.shape[-1])
+                                illustration_utils.draw_green_landmark(image_pred, x, y, image_radius)
+                            elif np.sum(target[idx, channel_idx]) > 0:
+                                # landmark below threshold but should be present.
+                                x *= (data.shape[-1] // target.shape[-1])
+                                y *= (data.shape[-1] // target.shape[-1])
+                                illustration_utils.draw_red_landmark(image_pred, x, y, image_radius)
+
+                        all_predictions.append(image_pred * 255)
 
                     self.writer.add_image(f'target_predictions_{sample_idx}',
-                                          make_grid(torch.tensor([
-                                              image_target * 255,
-                                              image_pred * 255,
-                                          ]), nrow=2, normalize=True))
-
+                                          make_grid(torch.tensor(all_predictions), nrow=outputs.shape[0]+1, normalize=True))
                 # custom end
 
                 if epoch == 1:
