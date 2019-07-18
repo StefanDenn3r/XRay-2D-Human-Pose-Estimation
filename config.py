@@ -10,7 +10,7 @@ CONFIG = {
             "num_classes": 23,
             "depthwise_separable_convolution": False,
             "dilation": 4,
-            "squeeze_excitation": True
+            "squeeze_excitation": False
         }
     },
     "data_loader": {

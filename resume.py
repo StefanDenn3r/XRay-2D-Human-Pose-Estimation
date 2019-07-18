@@ -26,15 +26,20 @@ def resume(run_dir=None, model_pth=None):
             break
 
     config = SourceFileLoader("CONFIG", os.path.join(run_path, 'config.py')).load_module().CONFIG
+
     epoch = int(model_path.split('checkpoint-epoch')[-1][:-4])
-    for i in epoch:
-        config['data_loader']['args']['custom_args']['sigma_reduction_factor'] += config['data_loader']['args']['custom_args']['sigma_reduction_factor']* \
-            config['data_loader']['args']['custom_args']['sigma_reduction_factor_change_rate']
-        config['data_loader']['args']['custom_args']['sigma_reduction_factor'] = min(1.0, config['data_loader']['args']['custom_args']['sigma_reduction_factor'])
-        
-        config['data_loader']['args']['custom_args']['sigma'] *= config['data_loader']['args']['custom_args']['sigma_reduction_factor'] 
-    
+    sigma_reduction_factor = config['data_loader']['args']['custom_args']['sigma_reduction_factor']
+    sigma_reduction_factor_change_rate = config['data_loader']['args']['custom_args']['sigma_reduction_factor_change_rate']
+    sigma = config['data_loader']['args']['custom_args']['sigma']
+    for _ in range(epoch):
+        sigma_reduction_factor = min(1.0, sigma_reduction_factor + sigma_reduction_factor * sigma_reduction_factor_change_rate)
+        sigma *= sigma_reduction_factor
+
+    config['data_loader']['args']['custom_args']['sigma_reduction_factor'] = sigma_reduction_factor
+    config['data_loader']['args']['custom_args']['sigma_reduction_factor_change_rate'] = sigma_reduction_factor_change_rate
+    config['data_loader']['args']['custom_args']['sigma'] = sigma
+
     main(ConfigParser(config, model_path))
 
 
-resume()
+resume("0718_000613", "checkpoint-epoch1.pth")
