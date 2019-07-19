@@ -26,7 +26,7 @@ CONFIG = {
                 'sigma': 80,
                 'sigma_reduction_factor': 0.95,
                 'sigma_reduction_factor_change_rate': 0.0005,
-                'fraction_of_dataset': 0.05,
+                'fraction_of_dataset': 1,
             }
         }
     },
