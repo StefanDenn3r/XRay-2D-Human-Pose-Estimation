@@ -128,7 +128,6 @@ class Stage1(BaseModel):
 class StageN(BaseModel):
     def __init__(self, x_channels=128, num_classes=23, depthwise_separable_convolution=True, squeeze_excitation=True, dilation=1):
         super(StageN, self).__init__()
-        self.X = X(x_channels, depthwise_separable_convolution, squeeze_excitation, dilation)
 
         kernel_size = calculate_kernel_size(11, dilation)
 
@@ -157,9 +156,6 @@ class StageN(BaseModel):
         self.relu = nn.ReLU()
 
     def forward(self, x, image):
-        x_prime = self.X(image)
-        x = torch.cat([x, x_prime], dim=1)
-
         for i, conv in enumerate(self.convs):
             x = conv(x)
             if i < len(self.convs) - 1:
@@ -175,6 +171,7 @@ class ConvolutionalPoseMachines(BaseModel):
         super(ConvolutionalPoseMachines, self).__init__()
 
         self.stage_1 = Stage1(x_channels, stage_channels, num_classes, depthwise_separable_convolution, squeeze_excitation, dilation)
+        self.X = X(x_channels, depthwise_separable_convolution, squeeze_excitation, dilation)
         stages = []
         for _ in range(num_stages - 1):
             stages.append(StageN(x_channels, num_classes, depthwise_separable_convolution, squeeze_excitation, dilation))
@@ -186,6 +183,8 @@ class ConvolutionalPoseMachines(BaseModel):
         x = self.stage_1(image)
         out.append(x)
         for stage in self.stages:
+            x_prime = self.X(image)
+            x = torch.cat([x, x_prime], dim=1)
             x = stage(x, image)
             out.append(x)
 
