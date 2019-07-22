@@ -182,8 +182,8 @@ class ConvolutionalPoseMachines(BaseModel):
         out = []
         x = self.stage_1(image)
         out.append(x)
-        x_prime = self.X(image)
         for stage in self.stages:
+            x_prime = self.X(image)
             x = torch.cat([x, x_prime], dim=1)
             x = stage(x, image)
             out.append(x)
