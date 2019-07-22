@@ -82,7 +82,7 @@ class Trainer(BaseTrainer):
                 # custom begin
 
                 if sample_idx < 30:
-                    illustration_utils.drawImagesOnTensorboard(self.writer, self.config, data, output, sample_idx, target)
+                    illustration_utils.draw_images_on_tensorboard(self.writer, self.config, data, output, sample_idx, target)
 
                 # custom end
 

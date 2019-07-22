@@ -58,7 +58,7 @@ def keypoint_distance_loss(output, target):
 
     target_landmarks_batch = [[np.unravel_index(np.argmax(i_target[idx], axis=None), i_target[idx].shape)
                                for idx in range(i_target.shape[0])] for i_target in target]
-    pixel_mm = 0.62 * 615 / np.max(output.shape) # 479 x 615 (image size) : 300 x 384 mm^2 (Detector size)
+    pixel_mm = 0.62 * 615 / np.max(output.shape)  # 479 x 615 (image size) : 300 x 384 mm^2 (Detector size)
     sum_distance = 0.0
     all_predictions = 0
     prediction = predictions[-1]
@@ -69,8 +69,7 @@ def keypoint_distance_loss(output, target):
     pred_landmarks_batch = np.array(
         [gaussian_filter(pred_landmark, sigma=CONFIG['prediction_blur']) for pred_landmark in pred_landmarks_batch])
 
-    for idx, (pred_landmarks, target_landmarks) in enumerate(
-            zip(np.array(pred_landmarks_batch), np.array(target_landmarks_batch))):
+    for idx, (pred_landmarks, target_landmarks) in enumerate(zip(np.array(pred_landmarks_batch), np.array(target_landmarks_batch))):
         for channel_idx, (pred_landmark, target_landmark) in enumerate(zip(pred_landmarks, target_landmarks)):
             if np.sum(target_landmark) == 0:
                 continue

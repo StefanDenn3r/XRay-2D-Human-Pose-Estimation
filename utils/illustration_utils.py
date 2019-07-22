@@ -23,7 +23,7 @@ def draw_terrain(output):
     plt.show()
 
 
-def drawImagesOnTensorboard(writer, config, data, output, sample_idx, target):
+def draw_images_on_tensorboard(writer, config, data, output, sample_idx, target):
     target = target.cpu().detach().numpy()
     outputs = output.cpu().detach().numpy()  # predictions from all stages
     target_landmarks = [[np.unravel_index(np.argmax(i_target[idx], axis=None), i_target[idx].shape)
@@ -33,6 +33,7 @@ def drawImagesOnTensorboard(writer, config, data, output, sample_idx, target):
         all_outputs, all_predictions = [], []
 
         image_target = np.concatenate((np.copy(image), np.copy(image), np.copy(image)))
+        image_base = np.copy(image_target)
 
         image_radius = max(1, int(data.shape[-1] * 0.02))
 
@@ -46,7 +47,7 @@ def drawImagesOnTensorboard(writer, config, data, output, sample_idx, target):
         all_predictions.append(image_target * 255)
 
         for stageIdx in range(outputs.shape[0]):
-            image_pred = np.copy(image_target)
+            image_pred = np.copy(image_base)
             output = outputs[stageIdx]
             pred_landmarks = [[np.unravel_index(np.argmax(i_output[idx], axis=None), i_output[idx].shape)
                                for idx in range(i_output.shape[0])] for i_output in output]
