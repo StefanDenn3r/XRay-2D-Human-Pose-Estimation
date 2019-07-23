@@ -4,12 +4,12 @@ CONFIG = {
     "arch": {
         "type": "ConvolutionalPoseMachines",
         "args": {
-            "x_channels": 128,
-            "stage_channels": 512,
-            "num_stages": 4,
+            "x_channels": 5,
+            "stage_channels": 5,
+            "num_stages": 3,
             "num_classes": 23,
-            "depthwise_separable_convolution": True,
-            "dilation": 1,
+            "depthwise_separable_convolution": False,
+            "dilation": 4,
             "squeeze_excitation": False
         }
     },
