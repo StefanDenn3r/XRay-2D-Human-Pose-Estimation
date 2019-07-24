@@ -1,8 +1,6 @@
 # IntelliJ project files
 .idea
 venv/
-data/XRay/Everything/Test/*
-data/XRay/Everything/Training/*
-data/XRay/Everything/Validation/*
+data/XRay/
 saved/
 __pycache__
