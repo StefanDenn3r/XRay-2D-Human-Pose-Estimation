@@ -4,3 +4,5 @@ venv/
 saved/
 __pycache__
 /data/*
+
+*.iml
