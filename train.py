@@ -4,9 +4,9 @@ import collections
 import torch
 
 import data_loader.data_loaders as module_data
+import model as module_arch
 import model.loss as module_loss
 import model.metric as module_metric
-import model.model as module_arch
 from parse_config import ConfigParser, parse_cmd_args
 from trainer import Trainer
 
@@ -18,7 +18,7 @@ def main(config):
     valid_data_loader = data_loader.split_validation()
 
     # build model architecture, then print to console
-    model = config.initialize('arch', module_arch)
+    model = config.initialize_class('arch', module_arch)
     logger.info(model)
 
     # get function handles of loss and metrics

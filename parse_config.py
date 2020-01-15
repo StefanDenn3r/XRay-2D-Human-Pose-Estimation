@@ -68,6 +68,21 @@ class ConfigParser:
         module_cfg = self[name]
         return getattr(module, module_cfg['type'])(*args, **module_cfg['args'])
 
+    def initialize_class(self, name, module, *args):
+        """
+        finds a function handle with the name given as 'type' in config, and returns the
+        instance initialized with corresponding keyword args given as 'args'.
+        """
+        class_instance = self.retrieve_class(name, module)
+        return class_instance(*args, **self[name]['args'])
+
+    def retrieve_class(self, name, module):
+        module_cfg = self[name]
+        class_name = module_cfg["type"]
+        base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), module.__name__, f'{class_name}.py')
+        class_instance = getattr(SourceFileLoader(class_name, base_path).load_module(), class_name)
+        return class_instance
+
     def __getitem__(self, name):
         return self.config[name]
 

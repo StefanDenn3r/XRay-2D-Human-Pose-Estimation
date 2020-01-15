@@ -28,8 +28,8 @@ def main(config, resume):
         num_workers=2
     )
 
-    # build model architecture
-    model = config.initialize('arch', module_arch)
+    # build model architecture, then print to console
+    model = config.initialize_class('arch', module_arch)
     logger.info(model)
 
     # get function handles of loss and metrics
